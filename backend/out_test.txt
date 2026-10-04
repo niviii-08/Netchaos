@@ -25,4 +25,4 @@ tests/test_e2e_canonical.py::test_canonical_e2e_workflow
     warnings.warn('The `dict` method is deprecated; use `model_dump` instead.', category=PydanticDeprecatedSince20)
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-======================== 1 passed, 8 warnings in 0.64s ========================
+======================== 1 passed, 8 warnings in 0.55s ========================

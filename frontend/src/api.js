@@ -79,5 +79,6 @@ export const api = {
   getExperimentDetail: (experimentId) => request(`/experiments/${experimentId}`),
   createExperiment: (networkId, params) => request(`/networks/${networkId}/experiments`, { method: "POST", body: params }),
   completeExperiment: (experimentId) => request(`/experiments/${experimentId}/complete`, { method: "POST" }),
+  getAnalyticsSummary: (networkId) => request(`/networks/${networkId}/analytics/summary`),
+  getFailureRanking: (networkId) => request(`/networks/${networkId}/analytics/failures`),
 };
-
