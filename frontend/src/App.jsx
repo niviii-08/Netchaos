@@ -6,8 +6,13 @@ import TopologyCanvas from "./components/TopologyCanvas.jsx";
 import { TrafficPanel, TrafficResults } from "./components/Traffic.jsx";
 import Failures from "./components/Failures.jsx";
 import RecoveryPanel from "./components/Recovery.jsx";
+import { MonitoringDashboard } from "./components/Monitoring.jsx";
+import { HistoryDashboard } from "./components/History.jsx";
+import { DashboardOverview } from "./components/DashboardOverview.jsx";
 
 const EMPTY_TOPOLOGY = { nodes: [], links: [], summary: { nodes: 0, links: 0, active_nodes: 0, active_links: 0 } };
+
+const TABS = ["Dashboard", "Topology", "Traffic", "Chaos", "Failures", "Recovery", "Monitoring", "History"];
 
 export default function App() {
   const [networks, setNetworks] = useState([]);
@@ -20,12 +25,14 @@ export default function App() {
   const [metrics, setMetrics] = useState(null);
   const [chaosActive, setChaosActive] = useState([]);
   const [chaosHistory, setChaosHistory] = useState([]);
+  
+  const [activeTab, setActiveTab] = useState("Dashboard");
+  const [networkStatus, setNetworkStatus] = useState("UNKNOWN");
 
   const refreshTopology = useCallback(async (id) => {
     setLoadedTopology(id ? await api.getTopology(id) : EMPTY_TOPOLOGY);
   }, []);
 
-  // Runs an API action, shows any error, and reports whether it succeeded.
   const run = useCallback(async (action) => {
     setError(null);
     try {
@@ -41,42 +48,52 @@ export default function App() {
     run(async () => {
       const list = await api.listNetworks();
       setNetworks(list);
-      if (list.length > 0) setNetworkId(list[list.length - 1].network_id);
+      if (list.length > 0) {
+        setNetworkId(list[list.length - 1].network_id);
+      } else {
+        setActiveTab("Topology"); // Force topology tab if empty to allow creation
+      }
     });
   }, [run]);
 
   useEffect(() => {
     setSelection(null);
     run(() => refreshTopology(networkId));
+    if (networkId) {
+       // Fetch top level status 
+       api.getMonitoringCurrent(networkId).then(data => setNetworkStatus(data.health_status)).catch(() => setNetworkStatus("UNKNOWN"));
+    } else {
+       setNetworkStatus("UNKNOWN");
+    }
   }, [networkId, refreshTopology, run]);
 
-  // Simulation history is kept on the server, so it is reloaded whenever a network is opened.
+  // Simulations polling
   useEffect(() => {
     let cancelled = false;
     setSimulations([]);
     setSelectedSimId(null);
-    if (!networkId) return undefined;
+    if (!networkId) return;
     run(async () => {
       const list = await api.listSimulations(networkId);
       if (cancelled) return;
       setSimulations(list);
-      setSelectedSimId(list[0]?.simulation_id ?? null); // newest first
+      setSelectedSimId(list[0]?.simulation_id ?? null);
     });
     return () => { cancelled = true; };
   }, [networkId, run]);
 
+  // Chaos details
   const refreshChaos = useCallback(async (id) => {
     const [active, history] = await Promise.all([api.getActiveChaos(id), api.getChaosHistory(id)]);
     setChaosActive(active.active_experiments);
     setChaosHistory(history.experiments);
   }, []);
 
-  // Chaos state lives on the server too, so it is reloaded whenever a network is opened.
   useEffect(() => {
     let cancelled = false;
     setChaosActive([]);
     setChaosHistory([]);
-    if (!networkId) return undefined;
+    if (!networkId) return;
     run(async () => {
       const [active, history] = await Promise.all([api.getActiveChaos(networkId), api.getChaosHistory(networkId)]);
       if (cancelled) return;
@@ -89,7 +106,6 @@ export default function App() {
   const selectedSim = simulations.find((s) => s.simulation_id === selectedSimId) ?? null;
   const selectedStatus = selectedSim?.status;
 
-  // Full metrics come from the metrics endpoint once a simulation has finished.
   useEffect(() => {
     let cancelled = false;
     setMetrics(null);
@@ -116,9 +132,9 @@ export default function App() {
     run(async () => {
       const created = await api.createNetwork(name);
       const list = await api.listNetworks();
-      // set together (no await between) so React renders the new list and selection in one pass
       setNetworks(list);
       setNetworkId(created.network_id);
+      setActiveTab("Topology");
     });
 
   const mutate = (action) =>
@@ -127,106 +143,150 @@ export default function App() {
       await refreshTopology(networkId);
     });
 
-  // Chaos edits the real topology, so both the topology and the chaos lists are reloaded afterwards.
   const chaosAction = (action) =>
     run(async () => {
       await action();
       await Promise.all([refreshTopology(networkId), refreshChaos(networkId)]);
     });
 
+  // Derived state
   const hasNetwork = Boolean(networkId);
-  // While a newly selected network is loading, don't show (or act on) the previous network's data.
   const loading = hasNetwork && loadedTopology.network_id !== networkId;
   const topology = loading ? EMPTY_TOPOLOGY : loadedTopology;
   const { summary } = topology;
+  
+  const showTopologyCanvas = ["Topology", "Traffic", "Chaos", "Failures", "Recovery"].includes(activeTab);
 
   return (
-    <div className="app">
-      <aside className="sidebar">
-        <h1>NetChaos <small>Topology · Traffic · Chaos</small></h1>
-        <NetworkPanel networks={networks} networkId={networkId} onSelect={setNetworkId} onCreate={createNetwork} />
-        <NodeForm disabled={!hasNetwork} onAdd={(node) => mutate(() => api.addNode(networkId, node))} />
-        <LinkForm nodes={topology.nodes} disabled={!hasNetwork} onAdd={(link) => mutate(() => api.addLink(networkId, link))} />
-        <TemplatePanel
-          disabled={!hasNetwork || loading}
-          isEmpty={summary.nodes === 0}
-          onApply={(template) => mutate(() => api.applyTemplate(networkId, template))}
-        />
-        <TrafficPanel
-          nodes={topology.nodes}
-          disabled={!hasNetwork || loading}
-          selectedSim={selectedSim}
-          onCreate={createSimulation}
-          onRun={runSimulation}
-        />
-        <ChaosPanel
-          nodes={topology.nodes}
-          links={topology.links}
-          disabled={!hasNetwork || loading}
-          onInject={(kind, body) => chaosAction(() => api.injectChaos(networkId, kind, body))}
-        />
-        <ActiveChaosPanel
-          active={chaosActive}
-          disabled={!hasNetwork || loading}
-          onRevert={(id) => chaosAction(() => api.revertChaos(networkId, id))}
-          onReset={() => chaosAction(() => api.resetChaos(networkId))}
-        />
-        <DetailsPanel
-          selection={selection}
-          topology={topology}
-          onDeleteNode={(node) => mutate(() => api.deleteNode(networkId, node.id)).then(() => setSelection(null))}
-          onDeleteLink={(link) => mutate(() => api.deleteLink(networkId, link.id)).then(() => setSelection(null))}
-        />
-      </aside>
-
-      <main className="main">
-        {error && (
-          <div className="error" role="alert">
-            {error}
-            <button type="button" onClick={() => setError(null)} aria-label="Dismiss">×</button>
-          </div>
-        )}
-        <div className="canvas">
-          {hasNetwork ? (
-            <TopologyCanvas
-              topology={topology} selection={selection} onSelect={setSelection} resetKey={networkId}
-              route={selectedSim?.route ?? null} chaos={chaosActive}
-            />
-          ) : (
-            <p className="empty">Create a network to get started.</p>
-          )}
-          {hasNetwork && !loading && summary.nodes === 0 && <p className="empty">Add nodes or generate a template.</p>}
+    <div className="app-layout">
+      {/* GLOBAL HEADER */}
+      <header className="app-header">
+        <div>
+          <b style={{marginRight: '20px', fontSize: '1.2rem'}}>NetChaos</b>
+          <label>Network:
+            <select 
+              value={networkId || ""} 
+              onChange={e => setNetworkId(e.target.value)}
+              style={{marginRight: '10px'}}
+            >
+              {networks.map(n => <option key={n.network_id} value={n.network_id}>{n.name}</option>)}
+            </select>
+          </label>
         </div>
-        {hasNetwork && (
-          <TrafficResults
-            simulations={simulations}
-            selectedId={selectedSimId}
-            metrics={metrics}
-            nameOf={(id) => topology.nodes.find((n) => n.id === id)?.name ?? id}
-            onSelect={setSelectedSimId}
-          >
-            <ChaosHistory history={chaosHistory} />
-            <Failures networkId={networkId} />
-            <RecoveryPanel 
-              networkId={networkId} 
-              simulations={simulations} 
-              selectedSimId={selectedSimId} 
-              nameOf={(id) => topology.nodes.find((n) => n.id === id)?.name ?? id}
-              onRecovered={() => {
-                // Refresh simulations and topology
-                api.listSimulations(networkId).then(list => setSimulations(list));
-                run(() => refreshTopology(networkId));
-              }}
-            />
-          </TrafficResults>
-        )}
-        <footer className="stats">
-          <span>Nodes: <b>{summary.nodes}</b></span>
-          <span>Links: <b>{summary.links}</b></span>
-          <span>Active Nodes: <b>{summary.active_nodes}</b></span>
-          <span>Active Links: <b>{summary.active_links}</b></span>
-        </footer>
-      </main>
+        <div style={{display:'flex', gap: '20px', alignItems: 'center'}}>
+           {hasNetwork && (
+             <>
+               <span>Nodes: {summary.nodes}</span>
+               <span>Links: {summary.links}</span>
+               <span className={`status-${networkStatus.toLowerCase()}`}>Status: {networkStatus}</span>
+             </>
+           )}
+        </div>
+      </header>
+      
+      {/* DASHBOARD BODY */}
+      <div className="app-body">
+        {/* SIDEBAR NAVIGATION */}
+        <aside className="app-sidebar">
+          {TABS.map(tab => (
+            <button 
+              key={tab} 
+              className={`nav-tab ${activeTab === tab ? "active" : ""}`}
+              onClick={() => setActiveTab(tab)}
+              disabled={!hasNetwork && tab !== 'Topology'}
+            >
+              {tab}
+            </button>
+          ))}
+        </aside>
+        
+        {/* MAIN DISPLAY */}
+        <main className="app-content">
+          {error && (
+            <div className="error" role="alert" style={{position:'absolute', zIndex: 1000, width: '100%', top:0}}>
+              {error}
+              <button type="button" onClick={() => setError(null)} aria-label="Dismiss">×</button>
+            </div>
+          )}
+          
+          {activeTab === "Dashboard" && hasNetwork && (
+             <DashboardOverview networkId={networkId} topology={topology} chaosActive={chaosActive} simulations={simulations} />
+          )}
+          
+          {activeTab === "Monitoring" && hasNetwork && (
+             <MonitoringDashboard networkId={networkId} inline={true} />
+          )}
+          
+          {activeTab === "History" && hasNetwork && (
+             <HistoryDashboard networkId={networkId} inline={true} />
+          )}
+          
+          {showTopologyCanvas && (
+             <div className="content-panel-wrapper">
+               {/* Contextual Side Panel based on Tab */}
+               <aside className="side-panel sidebar">
+                 {activeTab === "Topology" && (
+                   <>
+                     <NetworkPanel networks={networks} networkId={networkId} onSelect={setNetworkId} onCreate={createNetwork} />
+                     <NodeForm disabled={!hasNetwork} onAdd={(node) => mutate(() => api.addNode(networkId, node))} />
+                     <LinkForm nodes={topology.nodes} disabled={!hasNetwork} onAdd={(link) => mutate(() => api.addLink(networkId, link))} />
+                     <TemplatePanel disabled={!hasNetwork || loading} isEmpty={summary.nodes === 0} onApply={(template) => mutate(() => api.applyTemplate(networkId, template))} />
+                     <DetailsPanel selection={selection} topology={topology} onDeleteNode={(node) => mutate(() => api.deleteNode(networkId, node.id)).then(() => setSelection(null))} onDeleteLink={(link) => mutate(() => api.deleteLink(networkId, link.id)).then(() => setSelection(null))} />
+                   </>
+                 )}
+                 
+                 {activeTab === "Traffic" && (
+                   <>
+                     <TrafficPanel nodes={topology.nodes} disabled={!hasNetwork || loading} selectedSim={selectedSim} onCreate={createSimulation} onRun={runSimulation} />
+                     {hasNetwork && (
+                       <TrafficResults simulations={simulations} selectedId={selectedSimId} metrics={metrics} nameOf={(id) => topology.nodes.find((n) => n.id === id)?.name ?? id} onSelect={setSelectedSimId} />
+                     )}
+                   </>
+                 )}
+                 
+                 {activeTab === "Chaos" && (
+                   <>
+                     <ChaosPanel nodes={topology.nodes} links={topology.links} disabled={!hasNetwork || loading} onInject={(kind, body) => chaosAction(() => api.injectChaos(networkId, kind, body))} />
+                     <ActiveChaosPanel active={chaosActive} disabled={!hasNetwork || loading} onRevert={(id) => chaosAction(() => api.revertChaos(networkId, id))} onReset={() => chaosAction(() => api.resetChaos(networkId))} />
+                     <ChaosHistory history={chaosHistory} />
+                   </>
+                 )}
+                 
+                 {activeTab === "Failures" && (
+                    <Failures networkId={networkId} />
+                 )}
+                 
+                 {activeTab === "Recovery" && (
+                    <RecoveryPanel 
+                      networkId={networkId} 
+                      simulations={simulations} 
+                      selectedSimId={selectedSimId} 
+                      nameOf={(id) => topology.nodes.find((n) => n.id === id)?.name ?? id}
+                      onRecovered={() => {
+                        api.listSimulations(networkId).then(list => setSimulations(list));
+                        run(() => refreshTopology(networkId));
+                        api.getMonitoringCurrent(networkId).then(data => setNetworkStatus(data.health_status));
+                      }}
+                    />
+                 )}
+               </aside>
+               
+               {/* Topology Canvas rendered next to the Contextual panels */}
+               <div className="canvas">
+                 {hasNetwork ? (
+                   <TopologyCanvas
+                     topology={topology} selection={selection} onSelect={setSelection} resetKey={`${networkId}-${activeTab}`}
+                     route={selectedSim?.route ?? null} chaos={chaosActive}
+                   />
+                 ) : (
+                   <p className="empty">Create a network to get started.</p>
+                 )}
+                 {hasNetwork && !loading && summary.nodes === 0 && <p className="empty">Add nodes or generate a template.</p>}
+               </div>
+             </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 }

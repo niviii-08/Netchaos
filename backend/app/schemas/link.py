@@ -3,7 +3,6 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from app.enums import ElementStatus
-from app.models import Link
 
 
 class LinkCreate(BaseModel):
@@ -25,10 +24,3 @@ class LinkResponse(BaseModel):
     status: ElementStatus
     created_at: datetime
 
-    @classmethod
-    def from_model(cls, link: Link) -> "LinkResponse":
-        return cls(
-            link_id=link.id, network_id=link.network_id, source=link.source_node_id,
-            destination=link.destination_node_id, bandwidth=link.bandwidth, latency=link.latency,
-            packet_loss=link.packet_loss, status=link.status, created_at=link.created_at,
-        )

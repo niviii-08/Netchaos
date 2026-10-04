@@ -66,7 +66,18 @@ export const api = {
       method: "POST",
       body: { simulation_id: simulationId, strategy, ...opts },
     }),
+  getMonitoringCurrent: (networkId) => request(`/networks/${networkId}/monitoring/current`),
+  createMonitoringSnapshot: (networkId) => request(`/networks/${networkId}/monitoring/snapshot`, { method: "POST" }),
+  getMonitoringHistory: (networkId) => request(`/networks/${networkId}/monitoring/history?limit=25`),
+  getRecoverySummary: (networkId) => request(`/networks/${networkId}/monitoring/recovery`),
   getRecoveryHistory: (networkId) => request(`/networks/${networkId}/recovery/history`),
   getSimulationRoute: (networkId, simulationId) =>
     request(`/networks/${networkId}/simulations/${simulationId}/route`),
+    
+  // Module 7: History & Analysis
+  getHistory: (networkId) => request(`/networks/${networkId}/history`),
+  getExperimentDetail: (experimentId) => request(`/experiments/${experimentId}`),
+  createExperiment: (networkId, params) => request(`/networks/${networkId}/experiments`, { method: "POST", body: params }),
+  completeExperiment: (experimentId) => request(`/experiments/${experimentId}/complete`, { method: "POST" }),
 };
+

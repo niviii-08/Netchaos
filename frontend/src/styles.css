@@ -105,3 +105,69 @@ ul.active-list li button.secondary { flex: none; margin-top: 4px; }
 .history-item { display: flex; flex-direction: column; gap: 4px; padding: 8px; border-bottom: 1px solid var(--border); }
 .history-item:last-child { border-bottom: none; }
 .history-item .title { font-size: 13px; font-weight: 600; }
+
+ . m o n i t o r i n g - o v e r l a y   { 
+     p o s i t i o n :   a b s o l u t e ; 
+     t o p :   0 ;   l e f t :   0 ;   r i g h t :   0 ;   b o t t o m :   0 ; 
+     b a c k g r o u n d :   v a r ( - - b g ) ; 
+     z - i n d e x :   1 0 0 0 ; 
+     p a d d i n g :   2 0 p x ; 
+     o v e r f l o w - y :   a u t o ; 
+     d i s p l a y :   f l e x ; 
+     f l e x - d i r e c t i o n :   c o l u m n ; 
+     g a p :   2 0 p x ; 
+ } 
+ . m o n i t o r i n g - h e a d e r   { 
+     d i s p l a y :   f l e x ; 
+     j u s t i f y - c o n t e n t :   s p a c e - b e t w e e n ; 
+     a l i g n - i t e m s :   c e n t e r ; 
+     b a c k g r o u n d :   v a r ( - - p a n e l - b g ) ; 
+     p a d d i n g :   1 0 p x   2 0 p x ; 
+     b o r d e r - r a d i u s :   8 p x ; 
+     b o r d e r :   1 p x   s o l i d   v a r ( - - b o r d e r ) ; 
+ } 
+ . m o n i t o r i n g - h e a d e r   h 2   {   m a r g i n :   0 ;   } 
+ . m o n i t o r i n g - d a s h b o a r d - g r i d   { 
+     d i s p l a y :   g r i d ; 
+     g r i d - t e m p l a t e - c o l u m n s :   r e p e a t ( a u t o - f i t ,   m i n m a x ( 2 8 0 p x ,   1 f r ) ) ; 
+     g a p :   2 0 p x ; 
+ } 
+ . m o n i t o r i n g - c a r d   { 
+     b a c k g r o u n d :   v a r ( - - p a n e l - b g ) ; 
+     b o r d e r :   1 p x   s o l i d   v a r ( - - b o r d e r ) ; 
+     b o r d e r - r a d i u s :   8 p x ; 
+     p a d d i n g :   1 5 p x ; 
+ } 
+ . m o n i t o r i n g - c a r d   h 3   {   m a r g i n - t o p :   0 ;   p a d d i n g - b o t t o m :   8 p x ;   b o r d e r - b o t t o m :   1 p x   s o l i d   v a r ( - - b o r d e r - l i g h t ) ;   } 
+ . s t a t u s - h e a l t h y   {   c o l o r :   # 2 e c c 7 1 ;   t e x t - t r a n s f o r m :   u p p e r c a s e ;   m a r g i n :   1 0 p x   0 ;   } 
+ . s t a t u s - d e g r a d e d   {   c o l o r :   # f 1 c 4 0 f ;   t e x t - t r a n s f o r m :   u p p e r c a s e ;   m a r g i n :   1 0 p x   0 ;   } 
+ . s t a t u s - c r i t i c a l   {   c o l o r :   # e 7 4 c 3 c ;   t e x t - t r a n s f o r m :   u p p e r c a s e ;   m a r g i n :   1 0 p x   0 ;   } 
+ . m o n i t o r i n g - c h a r t s   { 
+     d i s p l a y :   g r i d ; 
+     g r i d - t e m p l a t e - c o l u m n s :   r e p e a t ( a u t o - f i t ,   m i n m a x ( 3 5 0 p x ,   1 f r ) ) ; 
+     g a p :   2 0 p x ; 
+ } 
+ . c h a r t - b o x   { 
+     b a c k g r o u n d :   v a r ( - - p a n e l - b g ) ; 
+     p a d d i n g :   1 5 p x ; 
+     b o r d e r - r a d i u s :   8 p x ; 
+     b o r d e r :   1 p x   s o l i d   v a r ( - - b o r d e r ) ; 
+ } 
+ . s t a t s - r o w   { 
+     d i s p l a y : f l e x ;   f l e x - d i r e c t i o n : c o l u m n ;   g a p : 8 p x ;   f o n t - s i z e :   0 . 9 5 r e m ; 
+ } 
+  
+ 
+.app-layout { display: flex; flex-direction: column; width: 100vw; height: 100vh; overflow: hidden; }
+.app-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: var(--bg-panel); border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
+.app-header select { padding: 5px; font-size: 1rem; margin-left: 10px; }
+.app-body { display: flex; flex: 1; min-height: 0; }
+.app-sidebar { width: 200px; background: var(--bg-primary); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
+.nav-tab { padding: 15px; text-align: left; background: none; border: none; border-bottom: 1px solid var(--border-color); color: var(--text); cursor: pointer; font-size: 1rem; width: 100%; transition: background 0.2s; }
+.nav-tab:hover { background: var(--bg-panel); }
+.nav-tab.active { background: var(--primary); color: white; }
+.app-content { flex: 1; display: flex; flex-direction: column; position: relative; overflow-y: auto; background: var(--bg-root); padding: 0; }
+.content-panel-wrapper { display: flex; flex: 1; height: 100%; }
+.side-panel { width: 350px; background: var(--bg-panel); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow-y: auto; }
+/* Override monitoring overlay to be inline */
+.monitoring-overlay.inline { position: relative; padding: 20px; }
