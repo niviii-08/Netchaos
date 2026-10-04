@@ -1,0 +1,30 @@
+[
+  {
+    "_id": "exp_001_net001",
+    "network_id": "net_001",
+    "experiment_type": "router_failure",
+    "target_type": "node",
+    "target_id": "node_r2_001",
+    "parameters": {},
+    "is_active": true,
+    "original_values": { "status": "active" },
+    "chaos_status": "active",
+    "created_at": { "$date": "2026-10-01T13:00:00Z" },
+    "reverted_at": null,
+    "description": "Router-2 hard failure simulation"
+  },
+  {
+    "_id": "exp_002_net001",
+    "network_id": "net_001",
+    "experiment_type": "packet_loss",
+    "target_type": "link",
+    "target_id": "link_003_net001",
+    "parameters": { "packet_loss": 0.25 },
+    "is_active": false,
+    "original_values": { "packet_loss": 0.0 },
+    "chaos_status": "reverted",
+    "created_at": { "$date": "2026-10-01T14:00:00Z" },
+    "reverted_at": { "$date": "2026-10-01T14:30:00Z" },
+    "description": "25% packet loss on Router-2 → Switch-2 link"
+  }
+]

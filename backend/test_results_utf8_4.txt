@@ -1,0 +1,78 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\Neevetha N\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Neevetha N\Downloads\netchaos-module3\netchaos\backend
+configfile: pytest.ini
+plugins: Faker-40.36.0, anyio-4.10.0, langsmith-0.10.10
+collecting ... collected 4 items
+
+tests/test_failures_api.py::test_create_baseline PASSED                  [ 25%]
+tests/test_failures_api.py::test_detect_failures_healthy PASSED          [ 50%]
+tests/test_failures_api.py::test_detect_node_failure FAILED              [ 75%]
+tests/test_failures_api.py::test_detect_partition FAILED                 [100%]
+
+================================== FAILURES ===================================
+__________________________ test_detect_node_failure ___________________________
+
+client = <starlette.testclient.TestClient object at 0x0000025BB2D8E490>
+network_id = 'net_001'
+
+    def test_detect_node_failure(client, network_id):
+        resp_n1 = client.post(f"/api/networks/{network_id}/nodes", json={"name": "A", "type": "router"})
+        resp_n2 = client.post(f"/api/networks/{network_id}/nodes", json={"name": "B", "type": "router"})
+        node1_id = resp_n1.json()["node_id"]
+        node2_id = resp_n2.json()["node_id"]
+    
+        client.post(f"/api/networks/{network_id}/links", json={"source": node1_id, "destination": node2_id, "bandwidth": 100, "latency": 10})
+    
+        client.post(f"/api/networks/{network_id}/failures/baseline")
+    
+        # Inject failure
+        client.post(f"/api/networks/{network_id}/chaos/router-failure", json={"target_id": node2_id})
+    
+        response = client.post(f"/api/networks/{network_id}/failures/detect")
+        data = response.json()
+>       assert data["overall_status"] == "critical"
+E       AssertionError: assert 'healthy' == 'critical'
+E         
+E         - critical
+E         + healthy
+
+tests\test_failures_api.py:52: AssertionError
+____________________________ test_detect_partition ____________________________
+
+client = <starlette.testclient.TestClient object at 0x0000025BB2E3CC30>
+network_id = 'net_001'
+
+    def test_detect_partition(client, network_id):
+        resp_n1 = client.post(f"/api/networks/{network_id}/nodes", json={"name": "A", "type": "router"})
+        resp_n2 = client.post(f"/api/networks/{network_id}/nodes", json={"name": "B", "type": "router"})
+        node1_id = resp_n1.json()["node_id"]
+        node2_id = resp_n2.json()["node_id"]
+    
+        resp_l = client.post(f"/api/networks/{network_id}/links", json={"source": node1_id, "destination": node2_id, "bandwidth": 100, "latency": 10})
+        link_id = resp_l.json()["link_id"]
+    
+        client.post(f"/api/networks/{network_id}/failures/baseline")
+    
+        # Fail the link
+        client.post(f"/api/networks/{network_id}/chaos/link-failure", json={"target_id": link_id})
+    
+        response = client.post(f"/api/networks/{network_id}/failures/detect")
+        data = response.json()
+>       assert data["connected_components"] == 2
+E       assert 1 == 2
+
+tests\test_failures_api.py:74: AssertionError
+============================== warnings summary ===============================
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+  C:\Users\Neevetha N\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_failures_api.py::test_detect_node_failure - AssertionError:...
+FAILED tests/test_failures_api.py::test_detect_partition - assert 1 == 2
+=================== 2 failed, 2 passed, 3 warnings in 0.75s ===================

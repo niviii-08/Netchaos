@@ -1,0 +1,80 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\Neevetha N\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Neevetha N\Downloads\netchaos-module3\netchaos\backend
+configfile: pytest.ini
+plugins: Faker-40.36.0, anyio-4.10.0, langsmith-0.10.10
+collecting ... collected 4 items
+
+tests/test_failures_api.py::test_create_baseline FAILED                  [ 25%]
+tests/test_failures_api.py::test_detect_failures_healthy FAILED          [ 50%]
+tests/test_failures_api.py::test_detect_node_failure FAILED              [ 75%]
+tests/test_failures_api.py::test_detect_partition FAILED                 [100%]
+
+================================== FAILURES ===================================
+____________________________ test_create_baseline _____________________________
+
+client = <starlette.testclient.TestClient object at 0x000001F85E5656A0>
+network_id = 'net_001'
+
+    def test_create_baseline(client, network_id):
+        resp_n1 = client.post(f"/api/networks/{network_id}/nodes", json={"name": "A", "type": "router"})
+        resp_n2 = client.post(f"/api/networks/{network_id}/nodes", json={"name": "B", "type": "router"})
+>       node1_id = resp_n1.json()["id"]
+                   ^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'id'
+
+tests\test_failures_api.py:6: KeyError
+________________________ test_detect_failures_healthy _________________________
+
+client = <starlette.testclient.TestClient object at 0x000001F85E5EDA90>
+network_id = 'net_001'
+
+    def test_detect_failures_healthy(client, network_id):
+        resp_n1 = client.post(f"/api/networks/{network_id}/nodes", json={"name": "A", "type": "router"})
+        resp_n2 = client.post(f"/api/networks/{network_id}/nodes", json={"name": "B", "type": "router"})
+>       node1_id = resp_n1.json()["id"]
+                   ^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'id'
+
+tests\test_failures_api.py:22: KeyError
+__________________________ test_detect_node_failure ___________________________
+
+client = <starlette.testclient.TestClient object at 0x000001F85E4879D0>
+network_id = 'net_001'
+
+    def test_detect_node_failure(client, network_id):
+        resp_n1 = client.post(f"/api/networks/{network_id}/nodes", json={"name": "A", "type": "router"})
+        resp_n2 = client.post(f"/api/networks/{network_id}/nodes", json={"name": "B", "type": "router"})
+>       node1_id = resp_n1.json()["id"]
+                   ^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'id'
+
+tests\test_failures_api.py:40: KeyError
+____________________________ test_detect_partition ____________________________
+
+client = <starlette.testclient.TestClient object at 0x000001F85E6FC770>
+network_id = 'net_001'
+
+    def test_detect_partition(client, network_id):
+        resp_n1 = client.post(f"/api/networks/{network_id}/nodes", json={"name": "A", "type": "router"})
+        resp_n2 = client.post(f"/api/networks/{network_id}/nodes", json={"name": "B", "type": "router"})
+>       node1_id = resp_n1.json()["id"]
+                   ^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'id'
+
+tests\test_failures_api.py:61: KeyError
+============================== warnings summary ===============================
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+  C:\Users\Neevetha N\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_failures_api.py::test_create_baseline - KeyError: 'id'
+FAILED tests/test_failures_api.py::test_detect_failures_healthy - KeyError: 'id'
+FAILED tests/test_failures_api.py::test_detect_node_failure - KeyError: 'id'
+FAILED tests/test_failures_api.py::test_detect_partition - KeyError: 'id'
+======================== 4 failed, 3 warnings in 0.60s ========================

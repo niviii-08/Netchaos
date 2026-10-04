@@ -1,0 +1,36 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\Neevetha N\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Neevetha N\Downloads\netchaos-module3\netchaos\backend
+configfile: pytest.ini
+plugins: Faker-40.36.0, anyio-4.10.0, langsmith-0.10.10
+collecting ... collected 17 items
+
+tests/test_recovery.py::test_link_failure_alternate_route PASSED         [  5%]
+tests/test_recovery.py::test_router_failure_alternate_route PASSED       [ 11%]
+tests/test_recovery.py::test_no_alternate_route PASSED                   [ 17%]
+tests/test_recovery.py::test_lowest_latency_selection PASSED             [ 23%]
+tests/test_recovery.py::test_shortest_hop_selection PASSED               [ 29%]
+tests/test_recovery.py::test_highest_bandwidth_selection PASSED          [ 35%]
+tests/test_recovery.py::test_multiple_failures PASSED                    [ 41%]
+tests/test_recovery.py::test_multiple_traffic_flows PASSED               [ 47%]
+tests/test_recovery.py::test_recovery_metrics PASSED                     [ 52%]
+tests/test_recovery.py::test_failed_component_remains_failed PASSED      [ 58%]
+tests/test_recovery.py::test_preview_does_not_mutate PASSED              [ 64%]
+tests/test_recovery.py::test_recovery_updates_history PASSED             [ 70%]
+tests/test_recovery.py::test_chaos_revert_does_not_break_recovery PASSED [ 76%]
+tests/test_recovery.py::test_composite_strategy PASSED                   [ 82%]
+tests/test_recovery.py::test_recover_all PASSED                          [ 88%]
+tests/test_recovery.py::test_simulation_route_endpoint PASSED            [ 94%]
+tests/test_recovery.py::test_integration_full_e2e PASSED                 [100%]
+
+============================== warnings summary ===============================
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+  C:\Users\Neevetha N\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 17 passed, 4 warnings in 4.30s ========================

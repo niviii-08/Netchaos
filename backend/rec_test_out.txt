@@ -1,0 +1,241 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\Neevetha N\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Neevetha N\Downloads\netchaos-module3\netchaos\backend
+configfile: pytest.ini
+plugins: Faker-40.36.0, anyio-4.10.0, langsmith-0.10.10
+collecting ... collected 17 items
+
+tests/test_recovery.py::test_link_failure_alternate_route PASSED         [  5%]
+tests/test_recovery.py::test_router_failure_alternate_route PASSED       [ 11%]
+tests/test_recovery.py::test_no_alternate_route PASSED                   [ 17%]
+tests/test_recovery.py::test_lowest_latency_selection PASSED             [ 23%]
+tests/test_recovery.py::test_shortest_hop_selection FAILED               [ 29%]
+tests/test_recovery.py::test_highest_bandwidth_selection PASSED          [ 35%]
+tests/test_recovery.py::test_multiple_failures PASSED                    [ 41%]
+tests/test_recovery.py::test_multiple_traffic_flows PASSED               [ 47%]
+tests/test_recovery.py::test_recovery_metrics PASSED                     [ 52%]
+tests/test_recovery.py::test_failed_component_remains_failed PASSED      [ 58%]
+tests/test_recovery.py::test_preview_does_not_mutate PASSED              [ 64%]
+tests/test_recovery.py::test_recovery_updates_history PASSED             [ 70%]
+tests/test_recovery.py::test_chaos_revert_does_not_break_recovery PASSED [ 76%]
+tests/test_recovery.py::test_composite_strategy PASSED                   [ 82%]
+tests/test_recovery.py::test_recover_all PASSED                          [ 88%]
+tests/test_recovery.py::test_simulation_route_endpoint PASSED            [ 94%]
+tests/test_recovery.py::test_integration_full_e2e FAILED                 [100%]
+
+================================== FAILURES ===================================
+_________________________ test_shortest_hop_selection _________________________
+
+client = <starlette.testclient.TestClient object at 0x0000021FD769E9E0>
+network_id = 'net_001'
+
+    def test_shortest_hop_selection(client, network_id):
+        # A-B-C-D (3 hops) vs A-E-D (2 hops)
+        nA = make_node(client, network_id, "A")
+        nB = make_node(client, network_id, "B")
+        nC = make_node(client, network_id, "C")
+        nD = make_node(client, network_id, "D")
+        nE = make_node(client, network_id, "E")
+    
+        def lnk(src, dst):
+            r = client.post(f"/api/networks/{network_id}/links",
+                            json=link_payload(src, dst, latency=10, bandwidth=100))
+            return r.json()["link_id"]
+    
+        lAB = lnk(nA, nB)
+        lBC = lnk(nB, nC)
+        lCD = lnk(nC, nD)
+        lAE = lnk(nA, nE)
+        lED = lnk(nE, nD)
+    
+        sim = run_sim(client, network_id, nA, nD)
+        sim_id = sim["simulation_id"]
+    
+        # Force a broken state so recovery is needed
+        fail_link(client, network_id, lAB)
+    
+        r = client.post(f"/api/networks/{network_id}/recovery",
+                        json={"simulation_id": sim_id, "strategy": "shortest_hop"})
+        data = r.json()
+>       assert data["status"] == "RECOVERED"
+E       AssertionError: assert 'NOT_REQUIRED' == 'RECOVERED'
+E         
+E         - RECOVERED
+E         + NOT_REQUIRED
+
+tests\test_recovery.py:210: AssertionError
+__________________________ test_integration_full_e2e __________________________
+
+client = <starlette.testclient.TestClient object at 0x0000021FD8C635B0>
+network_id = 'net_001'
+
+    def test_integration_full_e2e(client, network_id):
+        """
+        Full end-to-end:
+          1. Create diamond topology
+          2. Create baseline
+          3. Run A\u2192D (original route A-B-D)
+          4. Inject B-D link failure
+          5. Detect failures
+          6. Run recovery \u2192 A-C-D
+          7. Verify B-D still FAILED
+          8. Verify route_changed=True, connectivity_restored=True
+          9. Revert chaos
+          10. Run A\u2192D again (should succeed on original topology)
+        """
+        # 1. Topology
+        ids = build_diamond(client, network_id)
+    
+        # 2. Baseline
+        bl = client.post(f"/api/networks/{network_id}/failures/baseline")
+        assert bl.status_code == 200
+    
+        # 3. Run traffic A\u2192D
+        sim = run_sim(client, network_id, ids["A"], ids["D"])
+        sim_id = sim["simulation_id"]
+        assert sim["status"] == "completed"
+        original_route = sim["route"]
+        assert original_route is not None
+    
+        # 4. Inject B-D failure
+        fail_link(client, network_id, ids["BD"])
+    
+        # 5. Detect failures (verify detection sees the failure)
+>       det = client.post(f"/api/networks/{network_id}/failures/detect")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_recovery.py:499: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\testclient.py:597: in post
+    return super().post(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\testclient.py:488: in request
+    return super().request(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\testclient.py:381: in handle_request
+    raise exc
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\testclient.py:378: in handle_request
+    portal.call(self.app, scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\anyio\from_thread.py:291: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\anyio\from_thread.py:222: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\fastapi\applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\middleware\errors.py:187: in __call__
+    raise exc
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\middleware\errors.py:165: in __call__
+    await self.app(scope, receive, _send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\middleware\exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\_exception_handler.py:62: in wrapped_app
+    raise exc
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\_exception_handler.py:51: in wrapped_app
+    await app(scope, receive, sender)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\routing.py:715: in __call__
+    await self.middleware_stack(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\routing.py:735: in app
+    await route.handle(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\routing.py:288: in handle
+    await self.app(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\routing.py:76: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\_exception_handler.py:62: in wrapped_app
+    raise exc
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\_exception_handler.py:51: in wrapped_app
+    await app(scope, receive, sender)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\routing.py:73: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\fastapi\routing.py:301: in app
+    raw_response = await run_endpoint_function(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\fastapi\routing.py:214: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\concurrency.py:39: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\anyio\to_thread.py:56: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\anyio\_backends\_asyncio.py:2476: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\anyio\_backends\_asyncio.py:967: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+app\api\failures.py:34: in detect_failures
+    return service.detect_failures(network_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <app.services.failure_detection_service.FailureDetectionService object at 0x0000021FD8C06E90>
+network_id = 'net_001'
+
+    def detect_failures(self, network_id: str) -> FailureDetection:
+        baseline = self.get_baseline(network_id)
+    
+        current_nodes = list(self.db.scalars(select(Node).where(Node.network_id == network_id)).all())
+        current_links = list(self.db.scalars(select(Link).where(Link.network_id == network_id)).all())
+        baseline_nodes = list(baseline.nodes)
+        baseline_links = list(baseline.links)
+    
+        detector = FailureDetector(baseline_nodes, baseline_links, current_nodes, current_links)
+    
+        failed_nodes_data = detector.detect_failed_nodes()
+        failed_links_data = detector.detect_failed_links()
+        degraded_links_data = detector.detect_degraded_links()
+        comp_count, components, partition_data = detector.detect_partitions()
+        unreachable_pairs_count = detector.detect_unreachable_pairs()
+    
+        # Get previous simulations to check affected traffic
+        previous_simulations = self.db.scalars(
+            select(TrafficSimulation).where(
+                TrafficSimulation.network_id == network_id,
+                TrafficSimulation.status == "completed"
+            )
+        ).unique().all()
+    
+        # Inject route nodes into simulation objects for detector
+        for sim in previous_simulations:
+            route_nodes = []
+>           if sim.packets:
+               ^^^^^^^^^^^
+E           AttributeError: 'TrafficSimulation' object has no attribute 'packets'
+
+app\services\failure_detection_service.py:106: AttributeError
+============================== warnings summary ===============================
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+  C:\Users\Neevetha N\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_recovery.py::test_shortest_hop_selection - AssertionError: ...
+FAILED tests/test_recovery.py::test_integration_full_e2e - AttributeError: 'T...
+================== 2 failed, 15 passed, 4 warnings in 4.28s ===================

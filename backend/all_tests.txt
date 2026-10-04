@@ -1,0 +1,31 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\Neevetha N\Downloads\netchaos-module3\netchaos\backend
+configfile: pytest.ini
+testpaths: tests
+plugins: Faker-40.36.0, anyio-4.10.0, langsmith-0.10.10
+collected 211 items
+
+tests\test_chaos_api.py ................................................ [ 22%]
+............                                                             [ 28%]
+tests\test_chaos_state.py ...........                                    [ 33%]
+tests\test_failures_api.py ....                                          [ 35%]
+tests\test_graph.py ........                                             [ 39%]
+tests\test_links.py ..............                                       [ 45%]
+tests\test_networks.py .....                                             [ 48%]
+tests\test_nodes.py ...........                                          [ 53%]
+tests\test_recovery.py .................                                 [ 61%]
+tests\test_templates.py .............                                    [ 67%]
+tests\test_traffic_api.py ....................................           [ 84%]
+tests\test_traffic_simulator.py ................................         [100%]
+
+============================== warnings summary ===============================
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+  C:\Users\Neevetha N\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+====================== 211 passed, 4 warnings in 25.45s =======================

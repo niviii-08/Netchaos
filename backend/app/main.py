@@ -1,0 +1,39 @@
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+
+from app.api.chaos import router as chaos_router
+from app.api.topology import router as topology_router
+from app.api.traffic import router as traffic_router
+from app.api.failures import router as failures_router
+from app.api.recovery import router as recovery_router
+from app.database.database import init_db
+from app.errors import register_exception_handlers
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    init_db()
+    yield
+
+
+app = FastAPI(
+    title="NetChaos API",
+    description="Module 1: network topology (MongoDB + in-memory NetworkX graph). "
+    "Module 2: deterministic traffic simulation on top of that topology. "
+    "Module 3: reversible chaos injection (failures and degradations) applied to that same topology."
+    "Module 4: failure detection based on current state.",
+    version="0.5.0",
+    lifespan=lifespan,
+)
+register_exception_handlers(app)
+app.include_router(topology_router)
+app.include_router(traffic_router)
+app.include_router(chaos_router)
+app.include_router(failures_router)
+app.include_router(recovery_router)
+
+
+@app.get("/health", tags=["health"], summary="Liveness check")
+def health() -> dict[str, str]:
+    return {"status": "ok"}

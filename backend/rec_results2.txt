@@ -1,0 +1,120 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\Neevetha N\Downloads\netchaos-module3\netchaos\backend
+configfile: pytest.ini
+plugins: Faker-40.36.0, anyio-4.10.0, langsmith-0.10.10
+collected 17 items
+
+tests\test_recovery.py ....F...........F                                 [100%]
+
+================================== FAILURES ===================================
+_________________________ test_shortest_hop_selection _________________________
+tests\test_recovery.py:210: in test_shortest_hop_selection
+    assert data["status"] == "RECOVERED"
+E   AssertionError: assert 'NOT_REQUIRED' == 'RECOVERED'
+E     
+E     - RECOVERED
+E     + NOT_REQUIRED
+__________________________ test_integration_full_e2e __________________________
+tests\test_recovery.py:499: in test_integration_full_e2e
+    det = client.post(f"/api/networks/{network_id}/failures/detect")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\testclient.py:597: in post
+    return super().post(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\testclient.py:488: in request
+    return super().request(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\testclient.py:381: in handle_request
+    raise exc
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\testclient.py:378: in handle_request
+    portal.call(self.app, scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\anyio\from_thread.py:291: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\anyio\from_thread.py:222: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\fastapi\applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\middleware\errors.py:187: in __call__
+    raise exc
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\middleware\errors.py:165: in __call__
+    await self.app(scope, receive, _send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\middleware\exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\_exception_handler.py:62: in wrapped_app
+    raise exc
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\_exception_handler.py:51: in wrapped_app
+    await app(scope, receive, sender)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\routing.py:715: in __call__
+    await self.middleware_stack(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\routing.py:735: in app
+    await route.handle(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\routing.py:288: in handle
+    await self.app(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\routing.py:76: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\_exception_handler.py:62: in wrapped_app
+    raise exc
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\_exception_handler.py:51: in wrapped_app
+    await app(scope, receive, sender)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\routing.py:73: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\fastapi\routing.py:301: in app
+    raw_response = await run_endpoint_function(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\fastapi\routing.py:214: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\concurrency.py:39: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\anyio\to_thread.py:56: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\anyio\_backends\_asyncio.py:2476: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\anyio\_backends\_asyncio.py:967: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+app\api\failures.py:34: in detect_failures
+    return service.detect_failures(network_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app\services\failure_detection_service.py:106: in detect_failures
+    if sim.packets:
+       ^^^^^^^^^^^
+E   AttributeError: 'TrafficSimulation' object has no attribute 'packets'
+============================== warnings summary ===============================
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+  C:\Users\Neevetha N\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_recovery.py::test_shortest_hop_selection - AssertionError: ...
+FAILED tests/test_recovery.py::test_integration_full_e2e - AttributeError: 'T...
+================== 2 failed, 15 passed, 4 warnings in 5.95s ===================
