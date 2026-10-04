@@ -10,10 +10,11 @@ import { MonitoringDashboard } from "./components/Monitoring.jsx";
 import { HistoryDashboard } from "./components/History.jsx";
 import { DashboardOverview } from "./components/DashboardOverview.jsx";
 import { AnalyticsDashboard } from "./components/Analytics.jsx";
+import { ExperimentLab } from "./components/ExperimentLab.jsx";
 
 const EMPTY_TOPOLOGY = { nodes: [], links: [], summary: { nodes: 0, links: 0, active_nodes: 0, active_links: 0 } };
 
-const TABS = ["Dashboard", "Topology", "Traffic", "Chaos", "Failures", "Recovery", "Monitoring", "History", "Analytics"];
+const TABS = ["Dashboard", "Topology", "Traffic", "Chaos", "Failures", "Recovery", "Monitoring", "History", "Analytics", "Experiment Lab"];
 
 export default function App() {
   const [networks, setNetworks] = useState([]);
@@ -219,11 +220,15 @@ export default function App() {
           )}
           
           {activeTab === "History" && hasNetwork && (
-             <HistoryDashboard networkId={networkId} inline={true} />
+             <HistoryDashboard networkId={networkId} />
           )}
           
           {activeTab === "Analytics" && hasNetwork && (
              <AnalyticsDashboard networkId={networkId} />
+          )}
+          
+          {activeTab === "Experiment Lab" && hasNetwork && (
+             <ExperimentLab networkId={networkId} />
           )}
           
           {showTopologyCanvas && (

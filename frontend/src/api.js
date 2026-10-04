@@ -81,4 +81,11 @@ export const api = {
   completeExperiment: (experimentId) => request(`/experiments/${experimentId}/complete`, { method: "POST" }),
   getAnalyticsSummary: (networkId) => request(`/networks/${networkId}/analytics/summary`),
   getFailureRanking: (networkId) => request(`/networks/${networkId}/analytics/failures`),
+
+  // runner
+  createExperimentPlan: (payload) => request("/experiment-plans", { method: "POST", body: payload }),
+  getExperimentPlan: (planId) => request(`/experiment-plans/${planId}`),
+  runExperimentPlan: (planId) => request(`/experiment-plans/${planId}/run`, { method: "POST" }),
+  cancelExperimentPlan: (planId) => request(`/experiment-plans/${planId}/cancel`, { method: "POST" }),
+  getExperimentPlanResults: (planId) => request(`/experiment-plans/${planId}/results`),
 };

@@ -10,6 +10,7 @@ from app.api.recovery import router as recovery_router
 from app.api.monitoring import router as monitoring_router
 from app.api.history import router as history_router
 from app.api.analytics import router as analytics_router
+from app.api.runner import router as runner_router
 from app.database.database import init_db
 from app.errors import register_exception_handlers
 
@@ -43,6 +44,7 @@ app.include_router(recovery_router)
 app.include_router(monitoring_router)
 app.include_router(history_router)
 app.include_router(analytics_router)
+app.include_router(runner_router)
 
 @app.get("/health", tags=["health"], summary="Liveness check")
 
