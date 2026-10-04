@@ -99,7 +99,7 @@ class HistoryService:
         timeline.append(EventDetail(timestamp=start, event_type="EXPERIMENT_STARTED", description=f"Experiment '{exp['name']}' started", source_module="history", severity="info"))
         
         for c in chaos:
-            timeline.append(EventDetail(timestamp=c["created_at"], event_type="CHAOS_INJECTED", description=f"Chaos injected: {c['chaos_type']}", source_module="chaos", severity="critical"))
+            timeline.append(EventDetail(timestamp=c["created_at"], event_type="CHAOS_INJECTED", description=f"Chaos injected: {c.get('scenario_type', 'unknown')}", source_module="chaos", severity="critical"))
             
         for d in detections:
             timeline.append(EventDetail(timestamp=d["created_at"], event_type="FAILURE_DETECTED", description=f"Failure detected: {d.get('severity')}", source_module="failure_detection", severity="high"))
@@ -120,7 +120,7 @@ class HistoryService:
         rec = self.recovery_analyzer.analyze(recoveries)
         
         # Fake failures dict formatting based on chaos / detections
-        f_list = [{"id": c["id"], "type": c["chaos_type"]} for c in chaos]
+        f_list = [{"id": c["id"], "type": c.get("scenario_type", "unknown")} for c in chaos]
         imp = self.impact_analyzer.analyze(f_list, timeline, snaps)
 
         exp.pop("_id", None)

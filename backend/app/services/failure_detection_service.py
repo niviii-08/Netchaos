@@ -7,6 +7,7 @@ from app.errors import NotFoundError, ConflictError
 from app.schemas.failures import (
     NetworkBaselineResponse, FailureDetectionResponse, AffectedSimulationResponse, ConnectivityCheckResponse
 )
+from datetime import datetime, timezone
 
 class FailureDetectionService:
     def __init__(self, db: Database):
@@ -30,6 +31,7 @@ class FailureDetectionService:
         baseline = {
             "id": baseline_id,
             "network_id": network_id,
+            "created_at": datetime.now(timezone.utc),
             "is_active": True,
             "nodes": [],
             "links": []
@@ -108,6 +110,7 @@ class FailureDetectionService:
             "id": detection_id,
             "network_id": network_id,
             "baseline_id": baseline["id"],
+            "detected_at": datetime.now(timezone.utc),
             "overall_status": overall_status,
             "failed_nodes": len(failed_nodes_data),
             "failed_links": len(failed_links_data),
@@ -123,6 +126,7 @@ class FailureDetectionService:
                 "id": f"fail_{det_count + 1:03d}_{idx+1:03d}",
                 "network_id": network_id,
                 "detection_id": detection["id"],
+                "detected_at": datetime.now(timezone.utc),
                 "failure_type": fd["failure_type"],
                 "target_type": fd["target_type"],
                 "target_id": fd.get("target_id", "network"),
