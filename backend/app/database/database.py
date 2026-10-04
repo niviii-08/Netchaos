@@ -20,8 +20,12 @@ def get_mongo_db() -> Iterator[Database]:
 
 def init_db() -> None:
     """Create MongoDB indexes."""
+    from pymongo.errors import DuplicateKeyError
     client = get_mongo_client()
     db = client[get_mongodb_database()]
-    db.networks.create_index("id", unique=True)
-    db.nodes.create_index([("network_id", 1), ("id", 1)], unique=True)
-    db.links.create_index([("network_id", 1), ("id", 1)], unique=True)
+    try:
+        db.networks.create_index("id", unique=True)
+        db.nodes.create_index([("network_id", 1), ("id", 1)], unique=True)
+        db.links.create_index([("network_id", 1), ("id", 1)], unique=True)
+    except DuplicateKeyError as e:
+        print(f"Warning: Could not create unique index due to duplicates: {e}")

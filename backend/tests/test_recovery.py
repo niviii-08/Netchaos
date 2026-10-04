@@ -502,7 +502,7 @@ def test_integration_full_e2e(client, network_id):
 
     # 2. Baseline
     bl = client.post(f"/api/networks/{network_id}/failures/baseline")
-    assert bl.status_code == 200
+    assert bl.status_code == 201
 
     # 3. Run traffic A→D
     sim = run_sim(client, network_id, ids["A"], ids["D"])

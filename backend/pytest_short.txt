@@ -1,0 +1,154 @@
+﻿..............................F......................................... [ 32%]
+.....F......F....................................................F...... [ 64%]
+........................................................................ [ 97%]
+......                                                                   [100%]
+================================== FAILURES ===================================
+__________ test_multi_failure_conflict_halfway_rolls_back_everything __________
+tests\test_chaos_api.py:250: in test_multi_failure_conflict_halfway_rolls_back_everything
+    assert r.status_code == 409
+E   assert 201 == 409
+E    +  where 201 = <Response [201 Created]>.status_code
+____________________________ test_create_baseline _____________________________
+tests\test_failures_api.py:12: in test_create_baseline
+    assert response.status_code == 200
+E   assert 201 == 200
+E    +  where 201 = <Response [201 Created]>.status_code
+_________________ test_edit_after_restart_keeps_graph_in_sync _________________
+tests\test_graph.py:68: in test_edit_after_restart_keeps_graph_in_sync
+    b = make_node(client, network_id, "Router-B")  # must load existing node A before adding B
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\conftest.py:24: in make_node
+    response = client.post(f"/api/networks/{network_id}/nodes", json={"name": name, "type": node_type})
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\testclient.py:597: in post
+    return super().post(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\testclient.py:488: in request
+    return super().request(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\testclient.py:381: in handle_request
+    raise exc
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\testclient.py:378: in handle_request
+    portal.call(self.app, scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\anyio\from_thread.py:291: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\anyio\from_thread.py:222: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\fastapi\applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\middleware\errors.py:187: in __call__
+    raise exc
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\middleware\errors.py:165: in __call__
+    await self.app(scope, receive, _send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\middleware\exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\_exception_handler.py:62: in wrapped_app
+    raise exc
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\_exception_handler.py:51: in wrapped_app
+    await app(scope, receive, sender)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\routing.py:715: in __call__
+    await self.middleware_stack(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\routing.py:735: in app
+    await route.handle(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\routing.py:288: in handle
+    await self.app(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\routing.py:76: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\_exception_handler.py:62: in wrapped_app
+    raise exc
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\_exception_handler.py:51: in wrapped_app
+    await app(scope, receive, sender)
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\routing.py:73: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\fastapi\routing.py:301: in app
+    raw_response = await run_endpoint_function(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\fastapi\routing.py:214: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\starlette\concurrency.py:39: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\anyio\to_thread.py:56: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\anyio\_backends\_asyncio.py:2476: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\anyio\_backends\_asyncio.py:967: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+app\api\topology.py:59: in add_node
+    return map_node(service.add_node(network_id, data))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app\services\topology_service.py:86: in add_node
+    self.graphs.add_node(
+app\graph\graph_manager.py:66: in add_node
+    graph = self.get_graph(network_id)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+app\graph\graph_manager.py:42: in get_graph
+    raise GraphError(f"Graph for network '{network_id}' is not loaded") from None
+E   app.graph.graph_manager.GraphError: Graph for network 'net_001' is not loaded
+__________________________ test_integration_full_e2e __________________________
+tests\test_recovery.py:505: in test_integration_full_e2e
+    assert bl.status_code == 200
+E   assert 201 == 200
+E    +  where 201 = <Response [201 Created]>.status_code
+============================== warnings summary ===============================
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291
+  C:\Users\Neevetha N\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\_internal\_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+tests/test_dataset.py::test_dataset_generation
+  C:\Users\Neevetha N\Downloads\netchaos-module3\netchaos\backend\tests\test_dataset.py:44: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "started_at": datetime.datetime.utcnow().isoformat() + "Z",
+
+tests/test_dataset.py::test_dataset_generation
+  C:\Users\Neevetha N\Downloads\netchaos-module3\netchaos\backend\tests\test_dataset.py:45: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "ended_at": datetime.datetime.utcnow().isoformat() + "Z",
+
+tests/test_dataset.py::test_dataset_generation
+tests/test_dataset.py::test_dataset_filters
+tests/test_dataset.py::test_dataset_filters
+tests/test_dataset.py::test_dataset_export
+  C:\Users\Neevetha N\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\main.py:212: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+
+tests/test_e2e_canonical.py: 4 warnings
+tests/test_history_api.py: 1 warning
+tests/test_monitoring_api.py: 12 warnings
+tests/test_runner.py: 28 warnings
+  C:\Users\Neevetha N\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic\main.py:1114: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn('The `dict` method is deprecated; use `model_dump` instead.', category=PydanticDeprecatedSince20)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_chaos_api.py::test_multi_failure_conflict_halfway_rolls_back_everything
+FAILED tests/test_failures_api.py::test_create_baseline - assert 201 == 200
+FAILED tests/test_graph.py::test_edit_after_restart_keeps_graph_in_sync - app...
+FAILED tests/test_recovery.py::test_integration_full_e2e - assert 201 == 200
+4 failed, 218 passed, 55 warnings in 45.48s

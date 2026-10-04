@@ -29,7 +29,7 @@ class TopologyService:
         highest = self.db.networks.find_one({}, sort=[("id", -1)])
         highest_id = 0
         if highest and highest["id"].startswith("net_"):
-            highest_id = int(highest["id"][4:])
+            highest_id = int(highest["id"].split("_")[1]) if len(highest["id"].split("_")) > 1 and highest["id"].split("_")[1].isdigit() else 0
             
         net_id = f"net_{highest_id + 1:03d}"
         network = {
@@ -61,6 +61,7 @@ class TopologyService:
     # --- nodes -----------------------------------------------------------
     def add_node(self, network_id: str, data: NodeCreate) -> dict:
         network = self.get_network(network_id)
+        self._ensure_graph(network_id)
         
         taken = self.db.nodes.find_one({"network_id": network_id, "name": data.name})
         if taken:
@@ -102,6 +103,7 @@ class TopologyService:
 
     def delete_node(self, network_id: str, node_id: str) -> None:
         self.get_network(network_id)
+        self._ensure_graph(network_id)
         node = self.get_node(network_id, node_id)
         
         self.db.links.delete_many({
@@ -115,6 +117,7 @@ class TopologyService:
     # --- links -----------------------------------------------------------
     def add_link(self, network_id: str, data: LinkCreate) -> dict:
         network = self.get_network(network_id)
+        self._ensure_graph(network_id)
         
         for role, node_id in (("Source", data.source), ("Destination", data.destination)):
             if not self.db.nodes.find_one({"id": node_id, "network_id": network_id}):
@@ -170,6 +173,7 @@ class TopologyService:
 
     def delete_link(self, network_id: str, link_id: str) -> None:
         self.get_network(network_id)
+        self._ensure_graph(network_id)
         link = self.get_link(network_id, link_id)
         self.db.links.delete_one({"id": link_id, "network_id": network_id})
         self.graphs.remove_link(network_id, link_id)

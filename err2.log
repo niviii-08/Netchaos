@@ -1,0 +1,501 @@
+﻿backend-1  | INFO:     Started server process [1]
+backend-1  | INFO:     Waiting for application startup.
+backend-1  | INFO:     Application startup complete.
+backend-1  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+backend-1  | Warning: Could not create unique index due to duplicates: Index build failed: ea8c0a21-3a7e-4e7b-94d9-11ca6575b96e: Collection netchaos.networks ( 732c778c-f96a-4086-b834-162f3f027bc0 ) :: caused by :: E11000 duplicate key error collection: netchaos.networks index: id_1 dup key: { id: null }, full error: {'ok': 0.0, 'errmsg': 'Index build failed: ea8c0a21-3a7e-4e7b-94d9-11ca6575b96e: Collection netchaos.networks ( 732c778c-f96a-4086-b834-162f3f027bc0 ) :: caused by :: E11000 duplicate key error collection: netchaos.networks index: id_1 dup key: { id: null }', 'code': 11000, 'codeName': 'DuplicateKey', 'keyPattern': {'id': 1}, 'keyValue': {'id': None}, '$clusterTime': {'clusterTime': Timestamp(1791121739, 12), 'signature': {'hash': b'[\xc3\x17\xa6\x17]\x01\x87y)\xde\x9c\x0e\xee\xc9\x00\x01\xddA\xc7', 'keyId': 7647268023048339457}}, 'operationTime': Timestamp(1791121739, 12)}
+backend-1  | INFO:     172.21.0.4:37414 - "GET /api/networks HTTP/1.0" 500 Internal Server Error
+backend-1  | ERROR:    Exception in ASGI application
+backend-1  | Traceback (most recent call last):
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 422, in run_asgi
+backend-1  |     result = await app(  # type: ignore[func-returns-value]
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 63, in __call__
+backend-1  |     return await self.app(scope, receive, send)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/applications.py", line 1215, in __call__
+backend-1  |     await super().__call__(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/applications.py", line 96, in __call__
+backend-1  |     await self.middleware_stack(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+backend-1  |     await self.app(scope, receive, _send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/telemetry/_asgi.py", line 151, in __call__
+backend-1  |     await self.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+backend-1  |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+backend-1  |     await app(scope, receive, sender)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+backend-1  |     await self.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 676, in __call__
+backend-1  |     await self.middleware_stack(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 2786, in app
+backend-1  |     await route.handle(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 1817, in handle
+backend-1  |     await self.original_router.handle(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 2869, in handle
+backend-1  |     await included_router._handle_selected(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 1843, in _handle_selected
+backend-1  |     await original_route.handle(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 1308, in handle
+backend-1  |     await effective_context.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 165, in app
+backend-1  |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+backend-1  |     await app(scope, receive, sender)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 151, in app
+backend-1  |     response = await f(request)
+backend-1  |                ^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 727, in app
+backend-1  |     raw_response = await run_endpoint_function(
+backend-1  |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 362, in run_endpoint_function
+backend-1  |     return await run_in_threadpool(
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/concurrency.py", line 34, in run_in_threadpool
+backend-1  |     return await anyio.to_thread.run_sync(func)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/anyio/to_thread.py", line 65, in run_sync
+backend-1  |     return await get_async_backend().run_sync_in_worker_thread(
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 2706, in run_sync_in_worker_thread
+backend-1  |     return await future
+backend-1  |            ^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 1100, in run
+backend-1  |     result = context.run(func, *args)
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/telemetry/_api.py", line 240, in _run_sync_endpoint
+backend-1  |     return function(**arguments)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/app/app/api/topology.py", line 50, in list_networks
+backend-1  |     return [map_network(n) for n in service.list_networks()]
+backend-1  |             ^^^^^^^^^^^^^^
+backend-1  |   File "/app/app/api/topology.py", line 28, in map_network
+backend-1  |     return NetworkResponse(network_id=n["id"], name=n["name"], created_at=n["created_at"])
+backend-1  |                                       ~^^^^^^
+backend-1  | KeyError: 'id'
+backend-1  | INFO:     Shutting down
+backend-1  | INFO:     Waiting for application shutdown.
+backend-1  | INFO:     Application shutdown complete.
+backend-1  | INFO:     Finished server process [1]
+backend-1  | INFO:     Started server process [1]
+backend-1  | INFO:     Waiting for application startup.
+backend-1  | INFO:     Application startup complete.
+backend-1  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+backend-1  | INFO:     172.21.0.1:37000 - "GET /api/networks HTTP/1.1" 500 Internal Server Error
+backend-1  | ERROR:    Exception in ASGI application
+backend-1  | Traceback (most recent call last):
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 422, in run_asgi
+backend-1  |     result = await app(  # type: ignore[func-returns-value]
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 63, in __call__
+backend-1  |     return await self.app(scope, receive, send)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/applications.py", line 1215, in __call__
+backend-1  |     await super().__call__(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/applications.py", line 96, in __call__
+backend-1  |     await self.middleware_stack(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+backend-1  |     await self.app(scope, receive, _send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/telemetry/_asgi.py", line 151, in __call__
+backend-1  |     await self.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+backend-1  |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+backend-1  |     await app(scope, receive, sender)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+backend-1  |     await self.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 676, in __call__
+backend-1  |     await self.middleware_stack(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 2786, in app
+backend-1  |     await route.handle(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 1817, in handle
+backend-1  |     await self.original_router.handle(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 2869, in handle
+backend-1  |     await included_router._handle_selected(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 1843, in _handle_selected
+backend-1  |     await original_route.handle(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 1308, in handle
+backend-1  |     await effective_context.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 165, in app
+backend-1  |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+backend-1  |     await app(scope, receive, sender)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 151, in app
+backend-1  |     response = await f(request)
+backend-1  |                ^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 727, in app
+backend-1  |     raw_response = await run_endpoint_function(
+backend-1  |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 362, in run_endpoint_function
+backend-1  |     return await run_in_threadpool(
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/concurrency.py", line 34, in run_in_threadpool
+backend-1  |     return await anyio.to_thread.run_sync(func)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/anyio/to_thread.py", line 65, in run_sync
+backend-1  |     return await get_async_backend().run_sync_in_worker_thread(
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 2706, in run_sync_in_worker_thread
+backend-1  |     return await future
+backend-1  |            ^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 1100, in run
+backend-1  |     result = context.run(func, *args)
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/telemetry/_api.py", line 240, in _run_sync_endpoint
+backend-1  |     return function(**arguments)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/app/app/api/topology.py", line 50, in list_networks
+backend-1  |     return [map_network(n) for n in service.list_networks()]
+backend-1  |             ^^^^^^^^^^^^^^
+backend-1  |   File "/app/app/api/topology.py", line 28, in map_network
+backend-1  |     return NetworkResponse(network_id=n["id"], name=n["name"], created_at=n["created_at"])
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 263, in __init__
+backend-1  |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+backend-1  |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  | pydantic_core._pydantic_core.ValidationError: 1 validation error for NetworkResponse
+backend-1  | created_at
+backend-1  |   Input should be a valid datetime [type=datetime_type, input_value={'$date': '2026-10-01T10:00:00Z'}, input_type=dict]
+backend-1  |     For further information visit https://errors.pydantic.dev/2.13/v/datetime_type
+backend-1  | INFO:     Shutting down
+backend-1  | INFO:     Waiting for application shutdown.
+backend-1  | INFO:     Application shutdown complete.
+backend-1  | INFO:     Finished server process [1]
+backend-1  | INFO:     Started server process [1]
+backend-1  | INFO:     Waiting for application startup.
+backend-1  | INFO:     Application startup complete.
+backend-1  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+backend-1  | INFO:     172.21.0.1:35468 - "GET /api/networks HTTP/1.1" 200 OK
+backend-1  | INFO:     172.21.0.4:40598 - "GET /api/networks HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:40618 - "GET /api/networks/net_002/history HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:40674 - "GET /api/networks/net_002/chaos/history HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:40648 - "GET /api/networks/net_002/traffic/simulations HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:40658 - "GET /api/networks/net_002/chaos/active HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:40602 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:40632 - "GET /api/networks/net_002/topology HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:40688 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:58170 - "POST /api/networks/net_002/chaos/packet-loss HTTP/1.0" 201 Created
+backend-1  | INFO:     172.21.0.4:58198 - "GET /api/networks/net_002/topology HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:58204 - "GET /api/networks/net_002/chaos/active HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:58212 - "GET /api/networks/net_002/chaos/history HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:58182 - "POST /api/networks/net_002/chaos/packet-loss HTTP/1.0" 201 Created
+backend-1  | INFO:     172.21.0.4:58236 - "GET /api/networks/net_002/topology HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:58234 - "GET /api/networks/net_002/chaos/history HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:58222 - "GET /api/networks/net_002/chaos/active HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:58240 - "POST /api/networks/net_002/chaos/chaos_001/revert HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:58252 - "GET /api/networks/net_002/topology HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:58260 - "GET /api/networks/net_002/chaos/active HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:58258 - "GET /api/networks/net_002/chaos/history HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:58278 - "POST /api/networks/net_002/chaos/reset HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:58294 - "GET /api/networks/net_002/topology HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:58272 - "POST /api/networks/net_002/chaos/chaos_002/revert HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:58336 - "GET /api/networks/net_002/topology HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:58310 - "GET /api/networks/net_002/chaos/active HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:58324 - "GET /api/networks/net_002/chaos/history HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42524 - "GET /api/networks/net_002/chaos/active HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42536 - "GET /api/networks/net_002/chaos/history HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42542 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42544 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42554 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42556 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42568 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42574 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42584 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42600 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42604 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42590 - "POST /api/networks/net_002/monitoring/snapshot HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42592 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42596 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42602 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42594 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42618 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42632 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42644 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42648 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42660 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42672 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42688 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:42692 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:36564 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:36572 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:36588 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:36602 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:36610 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:36624 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:36640 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:36654 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:52148 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:36644 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:52160 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:52176 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:52190 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:52196 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:52208 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:52216 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:52230 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:52244 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:52260 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:52268 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:52284 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:35344 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.1:53164 - "GET /api/networks HTTP/1.1" 200 OK
+backend-1  | INFO:     172.21.0.1:53172 - "POST /api/networks/net_001/traffic/simulations HTTP/1.1" 400 Bad Request
+backend-1  | INFO:     172.21.0.4:35360 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:35376 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:35378 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:35396 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:35402 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:35394 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:35408 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50618 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50608 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50624 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50636 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50648 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50658 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50674 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50680 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50694 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50700 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50716 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:47080 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:47092 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:47088 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:47114 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:47128 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:47108 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:47134 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:47140 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:47150 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:47166 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:47182 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50838 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50854 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50856 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50858 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50862 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50878 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50882 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50884 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:50888 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:54834 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:54838 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:54846 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:54856 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:54870 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:54880 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:54884 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:54890 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:54898 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:54904 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:39370 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:39374 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:39354 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:39390 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:39394 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:39404 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:39418 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:39434 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:39440 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:39450 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:39462 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:49482 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:49498 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:49504 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:49506 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:49510 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:49526 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:49536 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:49544 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:49560 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:34008 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:34012 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:34024 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.1:37668 - "GET /docs HTTP/1.1" 200 OK
+backend-1  | INFO:     172.21.0.1:37674 - "GET /openapi.json HTTP/1.1" 200 OK
+backend-1  | INFO:     172.21.0.1:60554 - "POST /api/networks/net_001/traffic/simulations HTTP/1.1" 400 Bad Request
+backend-1  | INFO:     172.21.0.4:45544 - "GET /api/networks/net_002/monitoring/current HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:45548 - "GET /api/networks/net_002/monitoring/history?limit=25 HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.4:45564 - "GET /api/networks/net_002/monitoring/recovery HTTP/1.0" 200 OK
+backend-1  | INFO:     172.21.0.1:37168 - "GET /api/networks HTTP/1.1" 200 OK
+backend-1  | INFO:     172.21.0.1:37178 - "POST /api/networks/net_001/traffic/simulations HTTP/1.1" 500 Internal Server Error
+backend-1  | ERROR:    Exception in ASGI application
+backend-1  | Traceback (most recent call last):
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 422, in run_asgi
+backend-1  |     result = await app(  # type: ignore[func-returns-value]
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 63, in __call__
+backend-1  |     return await self.app(scope, receive, send)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/applications.py", line 1215, in __call__
+backend-1  |     await super().__call__(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/applications.py", line 96, in __call__
+backend-1  |     await self.middleware_stack(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+backend-1  |     await self.app(scope, receive, _send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/telemetry/_asgi.py", line 151, in __call__
+backend-1  |     await self.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+backend-1  |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+backend-1  |     await app(scope, receive, sender)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+backend-1  |     await self.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 676, in __call__
+backend-1  |     await self.middleware_stack(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 2786, in app
+backend-1  |     await route.handle(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 1817, in handle
+backend-1  |     await self.original_router.handle(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 2869, in handle
+backend-1  |     await included_router._handle_selected(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 1843, in _handle_selected
+backend-1  |     await original_route.handle(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 1308, in handle
+backend-1  |     await effective_context.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 165, in app
+backend-1  |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+backend-1  |     await app(scope, receive, sender)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 151, in app
+backend-1  |     response = await f(request)
+backend-1  |                ^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 727, in app
+backend-1  |     raw_response = await run_endpoint_function(
+backend-1  |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 362, in run_endpoint_function
+backend-1  |     return await run_in_threadpool(
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/concurrency.py", line 34, in run_in_threadpool
+backend-1  |     return await anyio.to_thread.run_sync(func)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/anyio/to_thread.py", line 65, in run_sync
+backend-1  |     return await get_async_backend().run_sync_in_worker_thread(
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 2706, in run_sync_in_worker_thread
+backend-1  |     return await future
+backend-1  |            ^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 1100, in run
+backend-1  |     result = context.run(func, *args)
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/telemetry/_api.py", line 240, in _run_sync_endpoint
+backend-1  |     return function(**arguments)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/app/app/api/traffic.py", line 64, in create_simulation
+backend-1  |     return map_simulation(service.create_simulation(network_id, data))
+backend-1  |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/app/app/services/traffic_service.py", line 41, in create_simulation
+backend-1  |     highest_id = int(highest["id"][4:])
+backend-1  |                  ^^^^^^^^^^^^^^^^^^^^^^
+backend-1  | ValueError: invalid literal for int() with base 10: '002_net001'
+backend-1  | INFO:     172.21.0.1:37184 - "POST /api/networks/net_001/chaos/link-failure HTTP/1.1" 201 Created
+backend-1  | INFO:     172.21.0.1:37186 - "POST /api/networks/net_001/monitoring/snapshot HTTP/1.1" 200 OK
+backend-1  | INFO:     172.21.0.1:37194 - "POST /api/experiment-plans HTTP/1.1" 400 Bad Request
+backend-1  | INFO:     172.21.0.1:37202 - "POST /api/datasets HTTP/1.1" 200 OK
+backend-1  | INFO:     Shutting down
+backend-1  | INFO:     Waiting for application shutdown.
+backend-1  | INFO:     Application shutdown complete.
+backend-1  | INFO:     Finished server process [1]
+backend-1  | INFO:     Started server process [1]
+backend-1  | INFO:     Waiting for application startup.
+backend-1  | INFO:     Application startup complete.
+backend-1  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+backend-1  | INFO:     172.21.0.1:45554 - "GET /api/networks HTTP/1.1" 200 OK
+backend-1  | INFO:     172.21.0.1:45566 - "POST /api/networks/net_001/traffic/simulations HTTP/1.1" 500 Internal Server Error
+backend-1  | ERROR:    Exception in ASGI application
+backend-1  | Traceback (most recent call last):
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 422, in run_asgi
+backend-1  |     result = await app(  # type: ignore[func-returns-value]
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 63, in __call__
+backend-1  |     return await self.app(scope, receive, send)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/applications.py", line 1215, in __call__
+backend-1  |     await super().__call__(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/applications.py", line 96, in __call__
+backend-1  |     await self.middleware_stack(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+backend-1  |     await self.app(scope, receive, _send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/telemetry/_asgi.py", line 151, in __call__
+backend-1  |     await self.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+backend-1  |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+backend-1  |     await app(scope, receive, sender)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+backend-1  |     await self.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 676, in __call__
+backend-1  |     await self.middleware_stack(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 2786, in app
+backend-1  |     await route.handle(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 1817, in handle
+backend-1  |     await self.original_router.handle(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 2869, in handle
+backend-1  |     await included_router._handle_selected(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 1843, in _handle_selected
+backend-1  |     await original_route.handle(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 1308, in handle
+backend-1  |     await effective_context.app(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 165, in app
+backend-1  |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+backend-1  |     raise exc
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+backend-1  |     await app(scope, receive, sender)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 151, in app
+backend-1  |     response = await f(request)
+backend-1  |                ^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 727, in app
+backend-1  |     raw_response = await run_endpoint_function(
+backend-1  |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 362, in run_endpoint_function
+backend-1  |     return await run_in_threadpool(
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/starlette/concurrency.py", line 34, in run_in_threadpool
+backend-1  |     return await anyio.to_thread.run_sync(func)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/anyio/to_thread.py", line 65, in run_sync
+backend-1  |     return await get_async_backend().run_sync_in_worker_thread(
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 2706, in run_sync_in_worker_thread
+backend-1  |     return await future
+backend-1  |            ^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 1100, in run
+backend-1  |     result = context.run(func, *args)
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/telemetry/_api.py", line 240, in _run_sync_endpoint
+backend-1  |     return function(**arguments)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/app/app/api/traffic.py", line 64, in create_simulation
+backend-1  |     return map_simulation(service.create_simulation(network_id, data))
+backend-1  |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/app/app/services/traffic_service.py", line 41, in create_simulation
+backend-1  |     highest_id = int(highest["id"][4:])
+backend-1  |                  ^^^^^^^^^^^^^^^^^^^^^^
+backend-1  | ValueError: invalid literal for int() with base 10: '002_net001'
+backend-1  | INFO:     172.21.0.1:45578 - "POST /api/networks/net_001/chaos/link-failure HTTP/1.1" 409 Conflict
+backend-1  | INFO:     172.21.0.1:45592 - "POST /api/networks/net_001/monitoring/snapshot HTTP/1.1" 200 OK
+backend-1  | INFO:     172.21.0.1:45598 - "POST /api/experiment-plans HTTP/1.1" 400 Bad Request
+backend-1  | INFO:     172.21.0.1:45604 - "POST /api/datasets HTTP/1.1" 200 OK

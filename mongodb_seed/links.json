@@ -8,7 +8,10 @@
     "latency": 2.5,
     "packet_loss": 0.0,
     "status": "active",
-    "created_at": { "$date": "2026-10-01T10:10:00Z" }
+    "created_at": {
+      "$date": "2026-10-01T10:10:00Z"
+    },
+    "id": "link_001_net001"
   },
   {
     "_id": "link_002_net001",
@@ -19,7 +22,10 @@
     "latency": 1.0,
     "packet_loss": 0.0,
     "status": "active",
-    "created_at": { "$date": "2026-10-01T10:10:01Z" }
+    "created_at": {
+      "$date": "2026-10-01T10:10:01Z"
+    },
+    "id": "link_002_net001"
   },
   {
     "_id": "link_003_net001",
@@ -30,7 +36,10 @@
     "latency": 1.0,
     "packet_loss": 0.0,
     "status": "active",
-    "created_at": { "$date": "2026-10-01T10:10:02Z" }
+    "created_at": {
+      "$date": "2026-10-01T10:10:02Z"
+    },
+    "id": "link_003_net001"
   },
   {
     "_id": "link_004_net001",
@@ -41,7 +50,10 @@
     "latency": 0.5,
     "packet_loss": 0.01,
     "status": "active",
-    "created_at": { "$date": "2026-10-01T10:10:03Z" }
+    "created_at": {
+      "$date": "2026-10-01T10:10:03Z"
+    },
+    "id": "link_004_net001"
   },
   {
     "_id": "link_005_net001",
@@ -52,7 +64,10 @@
     "latency": 0.5,
     "packet_loss": 0.01,
     "status": "active",
-    "created_at": { "$date": "2026-10-01T10:10:04Z" }
+    "created_at": {
+      "$date": "2026-10-01T10:10:04Z"
+    },
+    "id": "link_005_net001"
   },
   {
     "_id": "link_006_net001",
@@ -63,7 +78,10 @@
     "latency": 0.8,
     "packet_loss": 0.0,
     "status": "active",
-    "created_at": { "$date": "2026-10-01T10:10:05Z" }
+    "created_at": {
+      "$date": "2026-10-01T10:10:05Z"
+    },
+    "id": "link_006_net001"
   },
   {
     "_id": "link_001_net002",
@@ -74,7 +92,10 @@
     "latency": 1.0,
     "packet_loss": 0.0,
     "status": "active",
-    "created_at": { "$date": "2026-10-02T09:10:00Z" }
+    "created_at": {
+      "$date": "2026-10-02T09:10:00Z"
+    },
+    "id": "link_001_net002"
   },
   {
     "_id": "link_002_net002",
@@ -85,7 +106,10 @@
     "latency": 1.0,
     "packet_loss": 0.0,
     "status": "active",
-    "created_at": { "$date": "2026-10-02T09:10:01Z" }
+    "created_at": {
+      "$date": "2026-10-02T09:10:01Z"
+    },
+    "id": "link_002_net002"
   },
   {
     "_id": "link_003_net002",
@@ -96,6 +120,9 @@
     "latency": 1.0,
     "packet_loss": 0.0,
     "status": "active",
-    "created_at": { "$date": "2026-10-02T09:10:02Z" }
+    "created_at": {
+      "$date": "2026-10-02T09:10:02Z"
+    },
+    "id": "link_003_net002"
   }
 ]

@@ -38,7 +38,8 @@ class TrafficService:
         highest = self.db.traffic_simulations.find_one({"network_id": network_id}, sort=[("id", -1)])
         highest_id = 0
         if highest and highest["id"].startswith("sim_"):
-            highest_id = int(highest["id"][4:])
+            parts = highest["id"].split("_")
+            highest_id = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
             
         seed = data.random_seed if data.random_seed is not None else secrets.randbelow(2**32)
         sim = {

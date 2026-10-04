@@ -9,7 +9,7 @@ def test_create_baseline(client, network_id):
     resp_l = client.post(f"/api/networks/{network_id}/links", json={"source": node1_id, "destination": node2_id, "bandwidth": 100, "latency": 10})
     
     response = client.post(f"/api/networks/{network_id}/failures/baseline")
-    assert response.status_code == 200
+    assert response.status_code == 201
     data = response.json()
     assert data["network_id"] == network_id
     assert data["is_active"] is True

@@ -6,8 +6,8 @@ REST + JSON only. Failure detection, automatic recovery/rerouting, resilience sc
 ## 1. Start the project
 
 ```bash
-cp .env.example .env        # then edit the passwords
-docker compose up --build
+# Docker will automatically read your MongoDB credentials from comp-networks.env
+docker-compose up -d --build
 ```
 
 | What | URL |
@@ -15,13 +15,15 @@ docker compose up --build
 | Dashboard | http://localhost:3000 |
 | API docs (Swagger / ReDoc) | http://localhost:8000/docs , http://localhost:8000/redoc |
 
-**Without Docker** (needs a running MySQL with an empty database and user):
+**Without Docker** (needs a running MongoDB cluster):
 
 ```bash
 # backend
 cd backend && pip install -r requirements.txt
-export MYSQL_HOST=localhost MYSQL_DATABASE=netchaos MYSQL_USER=netchaos MYSQL_PASSWORD=...
+# Specify credentials if not using automatic env file loading
+export MONGODB_URI="mongodb+srv://..."
 uvicorn app.main:app --port 8000
+
 # frontend (second terminal) - Vite proxies /api to localhost:8000
 cd frontend && npm install && npm run dev      # http://localhost:5173
 ```
@@ -60,10 +62,11 @@ positions are not saved. `GET /api/networks/{id}/topology` returns the same data
 cd backend && pip install -r requirements-dev.txt && pytest
 ```
 
-Runs on in-memory SQLite by default. To run the same tests against a real MySQL server:
+Tests run seamlessly by executing against your primary MongoDB setup (if tests isolate with `wipe_db`).
+To run the same tests against a test database schema, supply your connection string:
 
 ```bash
-TEST_DATABASE_URL='mysql+pymysql://user:pass@localhost/netchaos_test' pytest   # this database is wiped
+MONGODB_URI='mongodb+srv://...' MONGODB_DATABASE='netchaos_test' pytest   # this database is wiped!
 ```
 
 ## Endpoints
@@ -583,4 +586,23 @@ To execute the entire suite of dynamically scaled recovery tests (which uses in-
 cd backend
 python -m pytest tests/test_recovery.py -v
 ```
+
+---
+
+# Module 12 — Research Dataset Generation & Experiment Data Management
+
+## 1. What it does
+Module 12 bridges the gap between raw experiment execution (from Module 11/7) and machine-learning-ready datasets. It seamlessly traverses historical experiments, mapping simulations to analytics outcomes to create structured ML-ready deterministic tables without altering fundamental behaviors on live structures.
+
+## 2. Dataset Generation
+The generation process:
+- Scrapes the `experiments`, `traffic_simulations`, and analytics outputs
+- Compiles topological features (node/link counts)
+- Validates structural completeness
+- Extracts deterministic degradation metrics (performance reduction, recovery times)
+- Evaluates data quality classifying rows into `VALID`, `PARTIAL`, or `INVALID` states
+
+## 3. UI and Export
+The **Dataset Lab** exposes an interface to filter experiments by topology, failure types, or recovery states.
+Generated datasets can preview their constituent records dynamically inside the React dashboard or can be explicitly exported into `JSON` and `CSV` structures seamlessly.
 

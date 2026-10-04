@@ -22,7 +22,13 @@ def main():
         "traffic_simulations",
         "chaos_experiments",
         "failure_detections",
-        "recovery_events"
+        "recovery_events",
+        "experiment_plans",
+        "datasets",
+        "dataset_records",
+        "chaos_events",
+        "experiments",
+        "packets"
     ]
 
     for col_name in collections:
@@ -32,7 +38,8 @@ def main():
             continue
             
         with open(file_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+            from bson import json_util
+            data = json_util.loads(f.read())
             
         col = db[col_name]
         

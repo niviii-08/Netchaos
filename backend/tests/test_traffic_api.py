@@ -1,8 +1,6 @@
 """API + database tests for Module 2 (run on in-memory SQLite, or MySQL via TEST_DATABASE_URL)."""
 import pytest
-from sqlalchemy import select
-
-from app.models import Packet, TrafficSimulation
+from app.database.database import get_mongo_db
 from tests.conftest import link_payload, make_node
 
 
@@ -185,12 +183,10 @@ def test_run_twice_is_refused_and_keeps_results(client, network_id, chain):
     assert client.get(f"{base(network_id)}/sim_001").json()["throughput_mbps"] == first["throughput_mbps"]
 
 
-def test_run_while_running_returns_409(client, session_factory, network_id, chain):
+def test_run_while_running_returns_409(client, network_id, chain):
     create(client, network_id, chain)
-    with session_factory() as db:
-        sim = db.get(TrafficSimulation, ("sim_001", network_id))
-        sim.status = "running"
-        db.commit()
+    db = next(get_mongo_db())
+    db.traffic_simulations.update_one({"id": "sim_001", "network_id": network_id}, {"$set": {"status": "running"}})
     r = run(client, network_id, "sim_001")
     assert r.status_code == 409 and r.json()["error"]["code"] == "simulation_already_running"
 
@@ -233,19 +229,19 @@ def test_histories_are_separate_per_network(client, network_id, chain):
 
 
 # --- persistence ------------------------------------------------------------------------------
-def test_results_persist_in_the_database(client, session_factory, network_id, chain):
+def test_results_persist_in_the_database(client, network_id, chain):
     create(client, network_id, chain, packet_count=250, packet_size=512, random_seed=9)
     api = run(client, network_id, "sim_001").json()
-    with session_factory() as db:  # a brand-new session sees the committed row
-        row = db.get(TrafficSimulation, ("sim_001", network_id))
-        assert row.status == "completed" and row.route == chain
-        assert (row.packet_count, row.packet_size, row.random_seed) == (250, 512, 9)
-        assert row.delivered_packets == api["delivered_packets"]
-        assert row.throughput_mbps == api["throughput_mbps"]
-        assert row.hop_count == 3 and row.path_bandwidth_mbps == 50 and row.path_latency_ms == 60
-        assert row.simulated_duration_ms == api["simulated_duration_ms"]
-        assert row.started_at and row.completed_at
-        assert db.scalars(select(Packet)).all() == []  # no packet rows unless asked for
+    db = next(get_mongo_db())
+    row = db.traffic_simulations.find_one({"id": "sim_001", "network_id": network_id})
+    assert row["status"] == "completed" and row["route"] == chain
+    assert (row["packet_count"], row["packet_size"], row["random_seed"]) == (250, 512, 9)
+    assert row["delivered_packets"] == api["delivered_packets"]
+    assert row["throughput_mbps"] == api["throughput_mbps"]
+    assert row["hop_count"] == 3 and row["path_bandwidth_mbps"] == 50 and row["path_latency_ms"] == 60
+    assert row["simulated_duration_ms"] == api["simulated_duration_ms"]
+    assert row.get("started_at") and row.get("completed_at")
+    assert db.packets.count_documents({}) == 0
 
 
 def test_history_survives_a_restart(client, network_id, chain):
@@ -268,7 +264,7 @@ def test_deleting_a_node_keeps_simulation_history(client, network_id, chain):
 
 
 # --- optional packet records ----------------------------------------------------------------------
-def test_packet_records_are_stored_only_when_requested(client, session_factory, network_id, chain):
+def test_packet_records_are_stored_only_when_requested(client, network_id, chain):
     create(client, network_id, chain, packet_count=200, store_packets=True, random_seed=42)
     run(client, network_id, "sim_001")
     page = client.get(f"{base(network_id)}/sim_001/packets?limit=50&offset=0").json()
@@ -296,13 +292,13 @@ def test_stored_packet_counts_match_simulation_totals(client, network_id):
     assert all(p["dropped_at_link_id"] == "link_001" for p in packets if p["status"] == "dropped")
 
 
-def test_10k_packet_simulation_stores_one_row_not_ten_thousand(client, session_factory, network_id, chain):
+def test_10k_packet_simulation_stores_one_row_not_ten_thousand(client, network_id, chain):
     create(client, network_id, chain, packet_count=10_000, random_seed=1)
     out = run(client, network_id, "sim_001").json()
     assert out["status"] == "completed" and out["delivered_packets"] == 10_000
-    with session_factory() as db:
-        assert len(db.scalars(select(TrafficSimulation)).all()) == 1
-        assert db.scalars(select(Packet)).all() == []
+    db = next(get_mongo_db())
+    assert db.traffic_simulations.count_documents({}) == 1
+    assert db.packets.count_documents({}) == 0
 
 
 def test_module1_templates_work_with_traffic(client, network_id):

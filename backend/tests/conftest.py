@@ -2,6 +2,15 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.database.database import get_mongo_db
+
+@pytest.fixture(autouse=True)
+def wipe_db():
+    db = next(get_mongo_db())
+    for collection in db.list_collection_names():
+        db[collection].delete_many({})
+    from app.graph import graph_manager
+    graph_manager.clear()
 
 @pytest.fixture()
 def client():
