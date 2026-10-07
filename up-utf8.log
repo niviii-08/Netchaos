@@ -1,0 +1,11 @@
+﻿docker-compose :  Image netchaos-frontend Building 
+At line:1 char:1
++ docker-compose up -d --build > up.log 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo              : NotSpecified    : ( Image netchaos-    frontend Building :    String) [], RemoteE    xception
+    + FullyQualifiedErr    orId : NativeComman    dError
+ 
+ Image netchaos-backend Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.11kB done
+#1 DONE 0.0s

@@ -1,0 +1,100 @@
+﻿backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/app/app/main.py", line 22, in lifespan
+backend-1  |     init_db()
+backend-1  |   File "/app/app/database/database.py", line 27, in init_db
+backend-1  |     db.networks.create_index("id", unique=True)
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/pymongo/synchronous/collection.py", line 2369, in create_index
+backend-1  |     return (self._create_indexes([index], session, **cmd_options))[0]
+backend-1  |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/pymongo/_csot.py", line 126, in csot_wrapper
+backend-1  |     return func(self, *args, **kwargs)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/pymongo/synchronous/collection.py", line 2251, in _create_indexes
+backend-1  |     return self.database.client._retryable_write(False, inner, session, _Op.CREATE_INDEXES)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/pymongo/synchronous/mongo_client.py", line 2099, in _retryable_write
+backend-1  |     return self._retry_with_session(retryable, func, s, bulk, operation, operation_id)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/pymongo/synchronous/mongo_client.py", line 1969, in _retry_with_session
+backend-1  |     return self._retry_internal(
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/pymongo/_csot.py", line 126, in csot_wrapper
+backend-1  |     return func(self, *args, **kwargs)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/pymongo/synchronous/mongo_client.py", line 2022, in _retry_internal
+backend-1  |     ).run()
+backend-1  |       ^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/pymongo/synchronous/mongo_client.py", line 2890, in run
+backend-1  |     res = self._read() if self._is_read else self._write()
+backend-1  |                                              ^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/pymongo/synchronous/mongo_client.py", line 3087, in _write
+backend-1  |     self._server = self._get_server()
+backend-1  |                    ^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/pymongo/synchronous/mongo_client.py", line 3063, in _get_server
+backend-1  |     return self._client._select_server(
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/pymongo/synchronous/mongo_client.py", line 1862, in _select_server
+backend-1  |     server = topology.select_server(
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/pymongo/synchronous/topology.py", line 357, in select_server
+backend-1  |     server = self._select_server(
+backend-1  |              ^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/pymongo/synchronous/topology.py", line 331, in _select_server
+backend-1  |     servers = self.select_servers(
+backend-1  |               ^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/pymongo/synchronous/topology.py", line 249, in select_servers
+backend-1  |     server_descriptions = self._select_servers_loop(
+backend-1  |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/pymongo/synchronous/topology.py", line 297, in _select_servers_loop
+backend-1  |     raise ServerSelectionTimeoutError(
+backend-1  | pymongo.errors.ServerSelectionTimeoutError: SSL handshake failed: ac-qkmxo2j-shard-00-02.wsxkegi.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1010) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-qkmxo2j-shard-00-00.wsxkegi.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1010) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-qkmxo2j-shard-00-01.wsxkegi.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1010) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 6ac48ae0ce6acd5dca00eacb, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-qkmxo2j-shard-00-00.wsxkegi.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-qkmxo2j-shard-00-00.wsxkegi.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1010) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-qkmxo2j-shard-00-01.wsxkegi.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-qkmxo2j-shard-00-01.wsxkegi.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1010) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-qkmxo2j-shard-00-02.wsxkegi.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-qkmxo2j-shard-00-02.wsxkegi.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1010) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+backend-1  | 
+backend-1  | ERROR:    Application startup failed. Exiting.
