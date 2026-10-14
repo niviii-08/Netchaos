@@ -1,29 +1,39 @@
-# NetChaos Analytics & Research Evaluation
+# NetChaos Analytics – definitions, formulas and limits
 
-This document details the analysis metrics implemented in **Module 10** for evaluating network resilience against chaos.
+All numbers are computed from **simulated** traffic. They are internal project indicators for comparing
+scenarios on one topology with each other; they are **not** real network measurements and **not** industry benchmarks.
 
-## Metrics & Definitions
-We define several project-specific networking metrics:
+## Where the data comes from
+An experiment (`/api/experiments/{id}`) holds explicit links to the records of one traffic flow's lifecycle
+(`POST /api/experiments/{id}/phases`, or filled automatically by the batch runner):
 
-1. **Recovery Time**: The duration (in seconds) between detecting a failure and successfully provisioning an alternative route.
-2. **Connectivity Preservation**: The percentage of original reachable traffic routes that remain available after an injected failure.
-3. **Recovery Effectiveness**: Measures to what degree baseline performance was restored.
+| Phase | Record |
+|---|---|
+| Baseline | `baseline_simulation_id` – traffic before the failure |
+| Chaos | `chaos_experiment_ids`, `chaos_simulation_id` – failure injected, same flow re-run (a failed route = flow DOWN: loss 100 %, throughput 0, latency undefined) |
+| Detection | `detection_id` |
+| Recovery | `recovery_id` – alternative route computed by the recovery engine (no simulation is modified) |
+| Post-recovery | `post_recovery_simulation_id` – new traffic sent over **exactly** the recovered route |
 
-## Formulas
-These are the exact formulas calculated by `ResilienceAnalyticsService`:
-- `Latency Degradation (%)` = `((Chaos Latency - Baseline Latency) / Baseline Latency) * 100` (Bounded using min/max normalization).
-- `Impact Score`: A weighted index evaluating combined damage:
-   - 30% Connectivity Loss
-   - 20% Latency Degradation
-   - 20% Packet Loss
-   - 15% Throughput Reduction
-   - 15% Recovery Interval
-- `Resilience Score`: `0.4 * Avg Connectivity + 0.4 * Total Recoverability %`
+Nothing is inferred from timestamps when links exist. An experiment without links falls back to an
+approximate snapshot comparison (`analyze_snapshots`) and is excluded from network aggregates.
+Missing data is `null` with an explanation in `missing`; it is never replaced by 0.
 
-## Assumptions & Limitations
-- Analytics currently approximate timestamps by relying on chronological events bounded between `experiment.started_at` and `experiment.ended_at`.
-- A failure is declared "Unrecoverable" strictly if no corresponding `RECOVERED` event is parsed by the Recovery Service within the lifespan of the experiment.
-- *Sample Size Limitations*: The frontend dashboard will explicitly warn if too few experiments have been executed since statistical averages can be heavily skewed by one unrecoverable edge case.
+## Metrics (`analysis/phase_metrics.py`)
+- **Recovery status**: `recovered`, `not_required` (route survived), `unrecoverable` (no alternative route), `not_attempted`, `unknown`.
+- **Recovery time** (s): detection `detected_at` → recovery record persisted. Simulator wall-clock, only defined when the flow was recovered and a detection exists.
+- **Connectivity preservation** (%): 100 if the flow survived or was recovered, 0 otherwise.
+- **Latency degradation** (%) = (chaos − baseline) / baseline × 100; `null` while the flow was down.
+- **Packet-loss increase** (percentage points) = chaos loss − baseline loss.
+- **Throughput degradation** (%) = (baseline − chaos) / baseline × 100.
+- **Recovery effectiveness** (%): share of lost throughput regained after recovery (0 if unrecoverable).
+- **Impact score** ∈ [0, 1], 0 = no impact: 0.30 connectivity + 0.20 latency (capped at +1000 %) + 0.20 packet loss + 0.15 throughput + 0.15 recovery time (capped at 10 s). A down flow scores the maximum on the first four terms.
+- **Resilience score** (0–100) = 0.5 × average connectivity preservation + 0.5 × % of experiments recoverable. (The first draft used 0.4 + 0.4, which capped the score at 80; the weights were normalised so a fully resilient network scores 100.) Bands: ≥ 90 highly, ≥ 75 resilient, ≥ 50 moderately, otherwise low.
 
-## Academic Honesty & Interpretation
-In our simulation experiments, the targeted topology's resilience is evaluated entirely through NetChaos-defined scoring. The Resilience Score is an internal relative index to compare the infrastructure against itself (e.g. comparing Link Failures vs Router Failures), not an industry-standard benchmark, nor a claim about real-world network performance without empirical validation. Wait for statistical maturity (>10 experiments) before finalizing findings.
+The weights and caps are design choices of this project, not derived from a standard.
+
+## Limitations
+- One flow per experiment; multi-flow experiments are not modelled.
+- Metrics depend on the simulator's deterministic model (seeded packet loss, additive link latency).
+- Recovery time is wall-clock of the simulator process, not a protocol convergence time.
+- Averages over few experiments are dominated by single cases; treat results from fewer than ~10 experiments as illustrative.

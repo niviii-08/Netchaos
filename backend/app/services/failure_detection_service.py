@@ -1,6 +1,7 @@
 """Business logic for failure detection using MongoDB."""
 from pymongo.database import Database
 
+from app.services.ids import next_id
 from app.detection.failure_detector import FailureDetector
 from app.enums import FailureType, NetworkStatus
 from app.errors import NotFoundError, ConflictError
@@ -59,16 +60,18 @@ class FailureDetectionService:
         self.db.network_baselines.insert_one(baseline)
         return baseline
 
-    def get_baseline(self, network_id: str) -> dict:
+    def get_baseline(self, network_id: str, auto_create: bool = False) -> dict:
         baseline = self.db.network_baselines.find_one(
             {"network_id": network_id, "is_active": True}, {"_id": 0}
         )
         if not baseline:
+            if auto_create:
+                return self.create_baseline(network_id)
             raise NotFoundError(f"Active baseline for network {network_id} not found", "baseline_not_found")
         return baseline
 
-    def detect_failures(self, network_id: str) -> dict:
-        baseline = self.get_baseline(network_id)
+    def detect_failures(self, network_id: str, *, experiment_id: str | None = None) -> dict:
+        baseline = self.get_baseline(network_id, auto_create=True)
         
         current_nodes = list(self.db.nodes.find({"network_id": network_id}))
         current_links = list(self.db.links.find({"network_id": network_id}))
@@ -102,14 +105,13 @@ class FailureDetectionService:
         elif degraded_links_data:
             overall_status = NetworkStatus.DEGRADED.value
 
-        det_prefix = f"det_{str(network_id)[-3:]}_"
-        det_count = self.db.failure_detections.count_documents({"network_id": network_id})
-        detection_id = f"{det_prefix}{det_count + 1:03d}"
+        detection_id = next_id(self.db.failure_detections, {"network_id": network_id}, f"det_{str(network_id)[-3:]}_")
 
         detection = {
             "id": detection_id,
             "network_id": network_id,
             "baseline_id": baseline["id"],
+            "experiment_id": experiment_id,
             "detected_at": datetime.now(timezone.utc),
             "overall_status": overall_status,
             "failed_nodes": len(failed_nodes_data),
@@ -123,7 +125,7 @@ class FailureDetectionService:
 
         for idx, fd in enumerate(all_failures_data):
             detection["failures"].append({
-                "id": f"fail_{det_count + 1:03d}_{idx+1:03d}",
+                "id": f"fail_{detection_id.rsplit('_', 1)[-1]}_{idx+1:03d}",
                 "network_id": network_id,
                 "detection_id": detection["id"],
                 "detected_at": datetime.now(timezone.utc),
@@ -140,7 +142,7 @@ class FailureDetectionService:
         return detection
 
     def check_connectivity(self, network_id: str, source: str, destination: str) -> dict:
-        baseline = self.get_baseline(network_id)
+        baseline = self.get_baseline(network_id, auto_create=True)
         current_nodes = list(self.db.nodes.find({"network_id": network_id}))
         current_links = list(self.db.links.find({"network_id": network_id}))
         detector = FailureDetector(baseline["nodes"], baseline["links"], current_nodes, current_links)
@@ -166,11 +168,11 @@ class FailureDetectionService:
         return list(self.db.failure_detections.find({"network_id": network_id}, {"_id": 0}).sort("id", -1))
 
     def get_report(self, network_id: str):
-        last_detection = self.db.failure_detections.find_one({"network_id": network_id}, sort=[("id", -1)], projection={"_id": 0})
+        last_detection = self.db.failure_detections.find_one({"network_id": network_id}, sort=[("detected_at", -1)], projection={"_id": 0})
         return last_detection
 
     def get_affected_traffic(self, network_id: str):
-        baseline = self.get_baseline(network_id)
+        baseline = self.get_baseline(network_id, auto_create=True)
         current_nodes = list(self.db.nodes.find({"network_id": network_id}))
         current_links = list(self.db.links.find({"network_id": network_id}))
         detector = FailureDetector(baseline["nodes"], baseline["links"], current_nodes, current_links)

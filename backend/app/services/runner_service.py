@@ -22,7 +22,12 @@ from app.services.history_service import HistoryService
 from app.schemas.history import ExperimentCreate
 from app.services.failure_detection_service import FailureDetectionService
 from app.services.recovery_service import RecoveryService
-from app.schemas.recovery import RoutePreviewRequest, RecoveryRequest
+from app.schemas.recovery import RecoveryRequest
+from app.services.ids import next_id
+import copy
+import logging
+
+log = logging.getLogger(__name__)
 
 def _utc_now() -> datetime:
     return datetime.now(timezone.utc).replace(microsecond=0)
@@ -42,8 +47,7 @@ class RunnerService:
         self.MAX_RUNS = 100
 
     def _generate_plan_id(self, network_id: str) -> str:
-        count = self.db.experiment_plans.count_documents({"network_id": network_id})
-        return f"plan_{network_id[-3:]}_{count + 1:03d}"
+        return next_id(self.db.experiment_plans, {"network_id": network_id}, f"plan_{network_id[-3:]}_")
 
     def create_plan(self, req: ExperimentPlanCreate) -> ExperimentPlanResponse:
         # Validate limitations
@@ -175,15 +179,14 @@ class RunnerService:
                 self._execute_single_run(plan_doc, run, i)
                 self._update_run_status(plan_id, run["run_id"], "COMPLETED")
             except Exception as e:
-                import traceback
-                traceback.print_exc()
+                log.exception("Run %s failed", run["run_id"])
                 self._update_run_status(plan_id, run["run_id"], "FAILED", error=str(e))
                 self.db.experiment_plans.update_one({"id": plan_id}, {"$inc": {"failed_runs": 1}})
                 # Attempt absolute cleanup on crash
                 self._force_cleanup(nid)
             
-            # small delay between runs context resets
-            time.sleep(0.5)
+            # tiny yield between runs
+            time.sleep(0.05)
 
         # Final loop evaluation
         final_doc = self.db.experiment_plans.find_one({"id": plan_id})
@@ -202,88 +205,95 @@ class RunnerService:
             
         self._update_plan_status(plan_id, final_status)
 
+    def _build_chaos_request(self, chaos_cfg: dict):
+        params = chaos_cfg.get("parameters") or {}
+        kind = (chaos_cfg.get("type") or "").lower()
+        target = chaos_cfg.get("target")
+        if kind == "link_failure":
+            return LinkFailureRequest(link_id=target)
+        if kind == "router_failure":
+            return RouterFailureRequest(node_id=target)
+        if kind == "packet_loss":
+            return PacketLossRequest(link_id=target, packet_loss=params.get("loss_percentage", params.get("packet_loss", 10.0)))
+        if kind == "latency":
+            return LatencyRequest(link_id=target, latency=params.get("additional_latency_ms", params.get("latency", 50.0)))
+        if kind == "bandwidth_reduction":
+            return BandwidthReductionRequest(link_id=target, bandwidth=params.get("reduction_percentage", params.get("bandwidth", 50.0)))
+        raise BadRequestError(f"Unsupported chaos type: {kind}")
+
     def _execute_single_run(self, plan_doc: dict, run: dict, run_idx: int):
+        """One full lifecycle: baseline -> chaos -> detection -> recovery -> post-recovery -> analytics links.
+
+        Chaos is always reverted, and the experiment is marked FAILED if any step raises.
+        """
         self._update_run_status(plan_doc["id"], run["run_id"], "RUNNING", started=True)
         nid = plan_doc["network_id"]
         run_cfg = run["configuration"]
-        
-        # 0. Prep / Apply Sweep Chaos Properties
-        chaos_cfg = plan_doc["chaos"].copy()
-        if run_cfg["sweep_parameter"] and chaos_cfg["parameters"] is not None:
-            # We enforce exact matches. If packet_loss sweep, update it:
-            if run_cfg["sweep_parameter"] in chaos_cfg["parameters"]:
-                chaos_cfg["parameters"][run_cfg["sweep_parameter"]] = run_cfg["sweep_value"]
-            elif run_cfg["sweep_parameter"] in chaos_cfg:
-                chaos_cfg[run_cfg["sweep_parameter"]] = run_cfg["sweep_value"]
-        
+
+        chaos_cfg = copy.deepcopy(plan_doc["chaos"])
+        sweep = run_cfg.get("sweep_parameter")
+        if sweep:
+            if chaos_cfg.get("parameters") is not None and sweep in chaos_cfg["parameters"]:
+                chaos_cfg["parameters"][sweep] = run_cfg["sweep_value"]
+            elif sweep in chaos_cfg:
+                chaos_cfg[sweep] = run_cfg["sweep_value"]
+
+        exp = None
+        chaos_id = None
         try:
-            # 1. Capture baseline (Create Failure baseline)
+            chaos_req = self._build_chaos_request(chaos_cfg)  # validate before touching the network
             self.failures.create_baseline(nid)
-            
-            # 2. Start experiment using History module
-            exp_req = ExperimentCreate(name=f"{plan_doc['name']} - Run {run['run_number']}", description=plan_doc.get("description") or "Automated Run")
-            exp = self.history.create_experiment(nid, exp_req)
+            exp = self.history.create_experiment(nid, ExperimentCreate(
+                name=f"{plan_doc['name']} - Run {run['run_number']}",
+                description=plan_doc.get("description") or "Automated Run"))
             self.db.experiment_plans.update_one(
-                {"id": plan_doc["id"], "runs.run_id": run["run_id"]},
-                {"$set": {"runs.$.experiment_id": exp.id}}
-            )
-            
-            # 3. Form traffic payload and simulate baseline flow
-            t_req = SimulationCreate(
-                source=plan_doc["traffic"]["source"],
-                destination=plan_doc["traffic"]["destination"],
-                packet_count=plan_doc["traffic"]["packet_count"],
-                packet_size=plan_doc["traffic"]["packet_size"],
-            )
-            sim_baseline = self.traffic.create_simulation(nid, t_req)
-            self.traffic.run_simulation(nid, sim_baseline["id"])
-            
-            # 4. Inject Chaos
-            t_params = chaos_cfg.get("parameters", {})
-            chaos_type = chaos_cfg.get("type", "").lower()
-            
-            if chaos_type == "link_failure":
-                chaos_req = LinkFailureRequest(link_id=chaos_cfg["target"])
-            elif chaos_type == "router_failure":
-                chaos_req = RouterFailureRequest(node_id=chaos_cfg["target"])
-            elif chaos_type == "packet_loss":
-                chaos_req = PacketLossRequest(link_id=chaos_cfg["target"], packet_loss=t_params.get("loss_percentage", 10.0))
-            elif chaos_type == "latency":
-                chaos_req = LatencyRequest(link_id=chaos_cfg["target"], latency=t_params.get("additional_latency_ms", 50.0))
-            elif chaos_type == "bandwidth_reduction":
-                chaos_req = BandwidthReductionRequest(link_id=chaos_cfg["target"], bandwidth=t_params.get("reduction_percentage", 50.0))
-            else:
-                raise BadRequestError(f"Unsupported chaos type: {chaos_type}")
-                
-            chaos_res = self.chaos.apply(nid, chaos_req.to_experiment())
-            
-            # 5. Simulate chaos flow (Failed traffic)
-            sim_chaos = self.traffic.create_simulation(nid, t_req)
-            self.traffic.run_simulation(nid, sim_chaos["id"])
-            
-            # 6. Detect Failure
-            self.failures.detect_failures(nid)
-            
-            # 7. Recovery (if enabled)
-            if plan_doc["recovery"].get("enabled", True):
-                strat = plan_doc["recovery"].get("strategy", "shortest_hop")
-                recovery_req = RecoveryRequest(simulation_id=sim_baseline["id"], strategy=strat)
-                self.recovery.apply_recovery(nid, recovery_req)
-                
-            # 8. Monitor snapshot state
+                {"id": plan_doc["id"], "runs.run_id": run["run_id"]}, {"$set": {"runs.$.experiment_id": exp.id}})
+
+            traffic = plan_doc["traffic"]
+            seed = plan_doc.get("random_seed")
+
+            def simulate(phase: str, recovery_id: str | None = None) -> dict:
+                req = SimulationCreate(source=traffic["source"], destination=traffic["destination"],
+                                       packet_count=traffic["packet_count"], packet_size=traffic["packet_size"],
+                                       random_seed=seed, recovery_id=recovery_id)
+                sim = self.traffic.create_simulation(nid, req, phase=phase, experiment_id=exp.id)
+                return self.traffic.run_simulation(nid, sim["id"])
+
+            phases: dict = {}
+            baseline = simulate("baseline")
+            phases["baseline_simulation_id"] = baseline["id"]
+
+            chaos_id = self.chaos.apply(nid, chaos_req.to_experiment()).experiment_id
+            phases["chaos_experiment_ids"] = [chaos_id]
+
+            chaos_sim = simulate("chaos")
+            phases["chaos_simulation_id"] = chaos_sim["id"]
+
+            detection = self.failures.detect_failures(nid, experiment_id=exp.id)
+            phases["detection_id"] = detection.get("id")
+
+            if chaos_sim.get("status") == "failed" and plan_doc["recovery"].get("enabled", True):
+                recovery = self.recovery.recover_simulation(
+                    nid, RecoveryRequest(simulation_id=baseline["id"], strategy=plan_doc["recovery"].get("strategy", "shortest_hop")),
+                    experiment_id=exp.id, detection_id=detection.get("id"))
+                phases["recovery_id"] = recovery.recovery_id
+                if recovery.status.value == "RECOVERED":
+                    phases["post_recovery_simulation_id"] = simulate("post_recovery", recovery.recovery_id)["id"]
+
             self.monitoring.create_snapshot(nid)
-            
-            # 9. Revert chaos explicitly
-            self.chaos.revert(nid, chaos_res.experiment_id)
-            
-            # 10. Complete experiment history
-            self.history.complete_experiment(exp.id)
-            
-        except Exception as e:
-            # Force revert if anything failed and chaos was injected
-            self._force_cleanup(nid)
-            raise e
-            
+            self.history.link_phases(exp.id, {k: v for k, v in phases.items() if v})
+        except Exception:
+            if exp is not None:
+                self.history.mark_failed(exp.id)
+            raise
+        finally:
+            if chaos_id:
+                try:
+                    self.chaos.revert(nid, chaos_id)
+                except Exception:
+                    log.exception("Could not revert chaos %s after run", chaos_id)
+        self.history.complete_experiment(exp.id)
+
     def _force_cleanup(self, nid: str):
         # Attempt to aggressively revert all ACTIVE chaos experiments for the network
         active_chaoses = list(self.db.chaos_experiments.find({"network_id": nid, "status": "ACTIVE"}))

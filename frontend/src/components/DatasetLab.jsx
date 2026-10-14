@@ -80,68 +80,75 @@ export default function DatasetLab() {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Research Dataset Lab</h2>
+    <div className="lab-container">
+      <div className="lab-header">
+        <h2 className="lab-title">Research Dataset Lab</h2>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="lab-grid-3" style={{ marginBottom: "24px" }}>
         
         {/* Generator Form */}
-        <div className="col-span-1 bg-white p-6 rounded-xl shadow border border-gray-200">
-          <h3 className="text-lg font-bold mb-4">Generate Dataset</h3>
-          <form onSubmit={handleGenerate} className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold mb-1">Name</label>
-              <input type="text" required value={name} onChange={e=>setName(e.target.value)} className="w-full p-2 border rounded" placeholder="e.g. Resilience Baseline v1" />
+        <div className="lab-card">
+          <div className="lab-card-header">
+            <span>Generate Dataset</span>
+          </div>
+          <form onSubmit={handleGenerate}>
+            <div className="lab-form-group">
+              <label>Dataset Name</label>
+              <input type="text" required value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Resilience Baseline v1" />
             </div>
-            <div>
-              <label className="block text-sm font-semibold mb-1">Description</label>
-              <input type="text" value={description} onChange={e=>setDescription(e.target.value)} className="w-full p-2 border rounded" />
+            <div className="lab-form-group">
+              <label>Description</label>
+              <input type="text" value={description} onChange={e=>setDescription(e.target.value)} placeholder="Optional dataset description" />
             </div>
-            <div>
-              <label className="block text-sm font-semibold mb-1">Version</label>
-              <input type="text" required value={version} onChange={e=>setVersion(e.target.value)} className="w-full p-2 border rounded" />
+            <div className="lab-form-group">
+              <label>Version</label>
+              <input type="text" required value={version} onChange={e=>setVersion(e.target.value)} />
             </div>
-            <div>
-              <label className="block text-sm font-semibold mb-1">Filter by Failure Type</label>
-              <select value={failureFilter} onChange={e=>setFailureFilter(e.target.value)} className="w-full p-2 border rounded">
+            <div className="lab-form-group">
+              <label>Filter by Failure Type</label>
+              <select value={failureFilter} onChange={e=>setFailureFilter(e.target.value)}>
                 <option value="">(All)</option>
                 <option value="link_failure">Link Failure</option>
                 <option value="router_failure">Router Failure</option>
                 <option value="packet_loss">Packet Loss</option>
               </select>
             </div>
-            <button type="submit" disabled={generating} className="w-full bg-blue-600 text-white font-bold py-2 rounded mt-4 hover:bg-blue-700 disabled:opacity-50">
+            <button type="submit" disabled={generating} style={{ width: "100%", marginTop: "12px" }}>
               {generating ? "Generating..." : "Generate Dataset"}
             </button>
           </form>
         </div>
         
         {/* Dataset List */}
-        <div className="col-span-2 bg-white p-6 rounded-xl shadow border border-gray-200">
-          <h3 className="text-lg font-bold mb-4">Available Datasets</h3>
+        <div className="lab-card">
+          <div className="lab-card-header">
+            <span>Available Datasets</span>
+            {datasets.length > 0 && <span className="lab-badge valid">{datasets.length} Total</span>}
+          </div>
           {loading ? (
-             <p>Loading...</p>
+             <div className="placeholder" style={{ padding: "40px" }}>Loading datasets...</div>
           ) : datasets.length === 0 ? (
-             <p className="text-gray-500">No datasets generated yet.</p>
+             <div className="placeholder" style={{ padding: "40px" }}>No datasets generated yet. Use the generator on the left to export experiment histories.</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+            <div style={{ overflowX: "auto" }}>
+              <table className="lab-table">
+                <thead>
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Dataset ID</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Records</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                    <th>Dataset ID</th>
+                    <th>Name</th>
+                    <th>Records</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody>
                   {datasets.map(ds => (
-                    <tr key={ds.dataset_id} className={selectedDataset?.dataset_id === ds.dataset_id ? 'bg-blue-50' : ''}>
-                      <td className="px-4 py-2 text-sm text-gray-900 font-mono">{ds.dataset_id}</td>
-                      <td className="px-4 py-2 text-sm font-semibold">{ds.name} v{ds.version}</td>
-                      <td className="px-4 py-2 text-sm">{ds.record_count}</td>
-                      <td className="px-4 py-2 text-sm">
-                         <button onClick={() => handleSelectDataset(ds.dataset_id)} className="text-blue-600 font-bold text-sm hover:underline">View</button>
+                    <tr key={ds.dataset_id} style={selectedDataset?.dataset_id === ds.dataset_id ? { background: "rgba(139, 92, 246, 0.15)" } : {}}>
+                      <td style={{ fontFamily: "monospace", fontSize: "12px", color: "var(--accent)" }}>{ds.dataset_id}</td>
+                      <td style={{ fontWeight: 600 }}>{ds.name} <span style={{ opacity: 0.6, fontSize: "11px" }}>v{ds.version}</span></td>
+                      <td>{ds.record_count}</td>
+                      <td>
+                         <button onClick={() => handleSelectDataset(ds.dataset_id)} style={{ padding: "4px 10px", fontSize: "12px" }}>View</button>
                       </td>
                     </tr>
                   ))}
@@ -154,66 +161,75 @@ export default function DatasetLab() {
       
       {/* Detail View */}
       {selectedDataset && (
-        <div className="bg-white p-6 rounded-xl shadow border border-gray-200">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-bold">Dataset: {selectedDataset.name} (v{selectedDataset.version})</h3>
-            <div className="flex gap-2">
-              <a href={`/api/datasets/${selectedDataset.dataset_id}/export/csv`} download className="px-4 py-2 border rounded-lg text-sm font-semibold hover:bg-gray-50">⬇ Export CSV</a>
-              <a href={`/api/datasets/${selectedDataset.dataset_id}/export/json`} download className="px-4 py-2 border rounded-lg text-sm font-semibold hover:bg-gray-50">⬇ Export JSON</a>
+        <div className="lab-card" style={{ marginTop: "24px" }}>
+          <div className="lab-header" style={{ marginBottom: "16px" }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: "18px", color: "var(--text)" }}>Dataset: {selectedDataset.name} (v{selectedDataset.version})</h3>
+              <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: "var(--muted)" }}>{selectedDataset.description || "No description provided"}</p>
+            </div>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <a href={`/api/datasets/${selectedDataset.dataset_id}/export/csv`} download style={{ textDecoration: "none" }}>
+                <button type="button" style={{ fontSize: "12px", padding: "6px 14px" }}>⬇ Export CSV</button>
+              </a>
+              <a href={`/api/datasets/${selectedDataset.dataset_id}/export/json`} download style={{ textDecoration: "none" }}>
+                <button type="button" style={{ fontSize: "12px", padding: "6px 14px" }}>⬇ Export JSON</button>
+              </a>
             </div>
           </div>
           
           {stats && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                <p className="text-xs text-gray-500 uppercase font-bold">Total Records</p>
-                <p className="text-2xl font-black text-gray-800">{stats.total_records}</p>
+            <div className="lab-stats-grid">
+              <div className="lab-stat-box">
+                <div className="lab-stat-label">Total Records</div>
+                <div className="lab-stat-val">{stats.total_records}</div>
               </div>
-              <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                <p className="text-xs text-green-600 uppercase font-bold">Valid Records</p>
-                <p className="text-2xl font-black text-green-800">{stats.data_quality_report.VALID || 0}</p>
+              <div className="lab-stat-box success">
+                <div className="lab-stat-label">Valid Records</div>
+                <div className="lab-stat-val">{stats.data_quality_report.VALID || 0}</div>
               </div>
-              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
-                <p className="text-xs text-yellow-600 uppercase font-bold">Partial Records</p>
-                <p className="text-2xl font-black text-yellow-800">{stats.data_quality_report.PARTIAL || 0}</p>
+              <div className="lab-stat-box warning">
+                <div className="lab-stat-label">Partial Records</div>
+                <div className="lab-stat-val">{stats.data_quality_report.PARTIAL || 0}</div>
               </div>
-              <div className="bg-red-50 p-4 rounded-lg border border-red-100">
-                <p className="text-xs text-red-600 uppercase font-bold">Invalid Records</p>
-                <p className="text-2xl font-black text-red-800">{stats.data_quality_report.INVALID || 0}</p>
+              <div className="lab-stat-box danger">
+                <div className="lab-stat-label">Invalid Records</div>
+                <div className="lab-stat-val">{stats.data_quality_report.INVALID || 0}</div>
               </div>
             </div>
           )}
           
-          <h4 className="font-bold text-gray-700 mb-2">Preview (first 20 records)</h4>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-xs">
-              <thead className="bg-gray-50">
+          <div className="lab-card-header" style={{ marginTop: "20px" }}>
+            <span>Preview (first 20 records)</span>
+          </div>
+          <div style={{ overflowX: "auto" }}>
+            <table className="lab-table">
+              <thead>
                 <tr>
-                  <th className="px-2 py-1 text-left">Quality</th>
-                  <th className="px-2 py-1 text-left">Experiment ID</th>
-                  <th className="px-2 py-1 text-left">Chaos</th>
-                  <th className="px-2 py-1 text-left">Outcome</th>
-                  <th className="px-2 py-1 text-left">Impact</th>
-                  <th className="px-2 py-1 text-left">Resilience</th>
-                  <th className="px-2 py-1 text-left">Rec. Time</th>
-                  <th className="px-2 py-1 text-left">Warnings</th>
+                  <th>Quality</th>
+                  <th>Experiment ID</th>
+                  <th>Chaos</th>
+                  <th>Outcome</th>
+                  <th>Impact</th>
+                  <th>Resilience</th>
+                  <th>Rec. Time</th>
+                  <th>Warnings</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody>
                 {records.slice(0, 20).map((r, i) => (
                   <tr key={i}>
-                    <td className="px-2 py-2">
-                       <span className={`px-2 py-1 rounded font-bold ${r.data_quality === 'VALID' ? 'bg-green-100 text-green-800' : r.data_quality === 'PARTIAL' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                    <td>
+                       <span className={`lab-badge ${r.data_quality.toLowerCase()}`}>
                          {r.data_quality}
                        </span>
                     </td>
-                    <td className="px-2 py-2 font-mono">{r.experiment_id.slice(0,8)}...</td>
-                    <td className="px-2 py-2">{r.chaos_type}</td>
-                    <td className="px-2 py-2 font-bold">{r.recovery_outcome}</td>
-                    <td className="px-2 py-2">{r.impact_score?.toFixed(2)}</td>
-                    <td className="px-2 py-2">{r.resilience_score?.toFixed(2)}</td>
-                    <td className="px-2 py-2">{r.recovery_time?.toFixed(2)}s</td>
-                    <td className="px-2 py-2 text-red-500">{r.validation_warnings.join(', ')}</td>
+                    <td style={{ fontFamily: "monospace", fontSize: "11px" }}>{r.experiment_id.slice(0,10)}...</td>
+                    <td>{r.chaos_type}</td>
+                    <td style={{ fontWeight: 600 }}>{r.recovery_outcome}</td>
+                    <td>{r.impact_score != null ? r.impact_score.toFixed(2) : "N/A"}</td>
+                    <td>{r.resilience_score != null ? r.resilience_score.toFixed(2) : "N/A"}</td>
+                    <td>{r.recovery_time != null ? `${r.recovery_time.toFixed(2)}s` : "N/A"}</td>
+                    <td style={{ color: "var(--danger)", fontSize: "11px" }}>{r.validation_warnings?.join(', ') || '-'}</td>
                   </tr>
                 ))}
               </tbody>

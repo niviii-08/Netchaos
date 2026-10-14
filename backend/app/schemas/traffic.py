@@ -21,6 +21,12 @@ class SimulationCreate(BaseModel):
         default=False,
         description="Also save one database row per packet (only allowed for small simulations).",
     )
+    recovery_id: str | None = Field(
+        default=None,
+        description="Post-recovery traffic: id of a RECOVERED recovery event (e.g. rec_001_001). The packets "
+        "are sent along exactly that recovered route; failed nodes and links are still never used.",
+        examples=["rec_001_001"],
+    )
 
 
 class SimulationResponse(BaseModel):
@@ -33,6 +39,9 @@ class SimulationResponse(BaseModel):
     random_seed: int
     store_packets: bool
     status: SimulationStatus
+    phase: str | None = Field(default=None, description="baseline | chaos | post_recovery, when part of a lifecycle")
+    recovery_id: str | None = Field(default=None, description="Recovery event this (post-recovery) run followed")
+    experiment_id: str | None = Field(default=None, description="Experiment this run belongs to, if any")
     failure_reason: str | None = None
     route_available: bool | None = None
     route: list[str] | None = None

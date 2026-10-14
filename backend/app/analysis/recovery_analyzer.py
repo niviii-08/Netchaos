@@ -1,28 +1,24 @@
 from typing import List
+
 from app.schemas.history import RecoveryAnalysis, RouteSummary
+
+
+def _diff(a, b):
+    return None if a is None or b is None else a - b
+
 
 class RecoveryAnalyzer:
     def analyze(self, recoveries: List[dict]) -> RecoveryAnalysis:
-        if not recoveries:
-            return RecoveryAnalysis(total_events=0, successful=0, failed=0, routes=[])
-            
-        success = [r for r in recoveries if r.get("recovery_status") == "RECOVERED"]
-        failed = len(recoveries) - len(success)
-        
+        recovered = [r for r in recoveries if r.get("recovery_status") == "RECOVERED"]
         routes = []
         for r in recoveries:
+            orig, rec = r.get("original_route") or [], r.get("recovered_route") or []
             routes.append(RouteSummary(
-                original_route=r.get("original_route") or [],
-                recovered_route=r.get("recovered_route") or [],
-                route_changed=r.get("route_changed", False),
-                hop_difference=len(r.get("recovered_route") or []) - len(r.get("original_route") or []),
-                latency_difference=r.get("recovered_latency", 0) - r.get("original_latency", 0),
-                bandwidth_difference=r.get("recovered_bandwidth", 0) - r.get("original_bandwidth", 0)
+                original_route=orig, recovered_route=rec,
+                route_changed=bool(r.get("route_changed", False)),
+                hop_difference=(len(rec) - len(orig)) if rec else None,
+                latency_difference=_diff(r.get("recovered_latency"), r.get("original_latency")),
+                bandwidth_difference=_diff(r.get("recovered_bandwidth"), r.get("original_bandwidth")),
             ))
-            
-        return RecoveryAnalysis(
-            total_events=len(recoveries),
-            successful=len(success),
-            failed=failed,
-            routes=routes
-        )
+        return RecoveryAnalysis(total_events=len(recoveries), successful=len(recovered),
+                                failed=len(recoveries) - len(recovered), routes=routes)

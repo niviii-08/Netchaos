@@ -49,6 +49,7 @@ _FIELD_CODES = {
     "packet_size": "invalid_packet_size",
     "random_seed": "invalid_random_seed",
     "store_packets": "invalid_store_packets",
+    "recovery_id": "invalid_recovery_id",
     # Module 3: chaos injection
     "node_id": "invalid_node_id",
     "link_id": "invalid_link_id",

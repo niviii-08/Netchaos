@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const NODE_TYPES = ["router", "host", "server", "client"];
+const NODE_TYPES = ["router", "host", "server", "client", "switch", "endpoint"];
 const TEMPLATES = ["linear", "star", "ring", "mesh"];
 const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1);
 

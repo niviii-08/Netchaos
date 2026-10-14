@@ -2,8 +2,10 @@ import urllib.request
 import urllib.parse
 import json
 import time
+import os
 
-BASE = "http://localhost:8000/api"
+PORT = os.getenv("PORT", "8001")
+BASE = f"http://localhost:{PORT}/api"
 
 def req(url, method="GET", body=None):
     req_obj = urllib.request.Request(f"{BASE}{url}", method=method)
@@ -23,63 +25,95 @@ def req(url, method="GET", body=None):
         print(f"Error on {method} {url}: {e}")
         return None
 
-print("Fetching networks...")
+print(f"Connecting to NetChaos API on {BASE}...")
 networks = req("/networks")
 if not networks:
     print("No networks found. Exiting.")
     exit(1)
 
-net_id = networks[0]["network_id"]
-print(f"Using network: {net_id}")
+net = networks[0]
+net_id = net["network_id"]
+print(f"Using network: {net['name']} ({net_id})")
 
-print("\n--- Running Traffic Simulation ---")
+nodes = req(f"/networks/{net_id}/nodes") or []
+links = req(f"/networks/{net_id}/links") or []
+
+if len(nodes) < 2:
+    print("Network needs at least 2 nodes. Exiting.")
+    exit(1)
+
+src_node = nodes[0]["node_id"]
+dst_node = nodes[-1]["node_id"]
+first_link = links[0]["link_id"] if links else None
+
+print(f"\n--- 1. Running Real Traffic Simulation ({src_node} -> {dst_node}) ---")
 traffic = req(f"/networks/{net_id}/traffic/simulations", "POST", {
-    "source": "node_e1_001",
-    "destination": "node_e2_001",
-    "packet_count": 500,
+    "source": src_node,
+    "destination": dst_node,
+    "packet_count": 1000,
     "packet_size": 1500,
     "store_packets": False
 })
 if traffic:
-    print("Created Traffic:", traffic.get("simulation_id"))
-    req(f"/networks/{net_id}/traffic/simulations/{traffic['simulation_id']}/run", "POST")
-    print("Traffic Simulation Completed.")
+    sim_id = traffic.get("simulation_id")
+    print(f"Created Traffic Simulation: {sim_id}")
+    run_res = req(f"/networks/{net_id}/traffic/simulations/{sim_id}/run", "POST")
+    print("Traffic Simulation Completed:", run_res.get("status") if run_res else "done")
 
-print("\n--- Injecting Chaos ---")
-chaos = req(f"/networks/{net_id}/chaos/link-failure", "POST", {
-    "link_id": "link_001_net001"
-})
-if chaos:
-    print("Chaos Injected:", chaos.get("experiment_id"))
+if first_link:
+    print(f"\n--- 2. Injecting Link Chaos on {first_link} ---")
+    chaos = req(f"/networks/{net_id}/chaos/link-failure", "POST", {
+        "link_id": first_link
+    })
+    if chaos:
+        exp_id = chaos.get("experiment_id")
+        print("Chaos Injected:", exp_id)
+        
+        print("\n--- 3. Capturing Telemetry Snapshot Under Chaos ---")
+        monitoring = req(f"/networks/{net_id}/monitoring/snapshot", "POST")
+        print("Monitoring captured:", monitoring.get("health_status") if monitoring else "captured")
 
-print("\n--- Creating Monitoring Snapshot ---")
-monitoring = req(f"/networks/{net_id}/monitoring/snapshot", "POST")
-print("Monitoring captured.")
+        print("\n--- 4. Executing Dynamic Route Recovery ---")
+        recovery = req(f"/networks/{net_id}/recovery/recover", "POST", {
+            "strategy": "dijkstra_alternate",
+            "simulation_id": traffic.get("simulation_id") if traffic else None
+        })
+        print("Recovery execution status:", recovery.get("status") if recovery else "processed")
 
-print("\n--- Running Experiment Plan ---")
+        print(f"\n--- 5. Reverting Chaos on {first_link} ---")
+        req(f"/networks/{net_id}/chaos/{exp_id}/revert", "POST")
+        print("Chaos reverted to baseline.")
+
+print("\n--- 6. Creating Baseline Monitoring Snapshot ---")
+req(f"/networks/{net_id}/monitoring/snapshot", "POST")
+
+print("\n--- 7. Running Automated Experiment Plan Suite ---")
 plan = req("/experiment-plans", "POST", {
-    "name": "Resilience Baseline Dataset Generation",
-    "description": "Auto-generated test",
+    "name": "NetChaos Resilience & Route Healing Benchmark",
+    "description": "Dynamic automated resilience suite across active topology",
     "network_id": net_id,
     "target_simulations": [traffic['simulation_id']] if traffic else [],
     "chaos_events": [
-        {"type": "link_failure", "link_id": "link_004_net001"}
+        {"type": "link_failure", "link_id": first_link} if first_link else {"type": "node_failure", "node_id": src_node}
     ],
-    "recovery_strategy": "shortest_hop"
+    "recovery_strategy": "dijkstra_alternate"
 })
 if plan:
-    print("Created Experiment Plan:", plan.get("plan_id"))
-    req(f"/experiment-plans/{plan['plan_id']}/run", "POST")
-    print("Triggered Experiment Plan execution")
-    time.sleep(2) # let the async runner complete it
+    plan_id = plan.get("plan_id")
+    print(f"Created Experiment Plan: {plan_id}")
+    req(f"/experiment-plans/{plan_id}/run", "POST")
+    print("Triggered Experiment Plan execution. Awaiting results...")
+    time.sleep(2)
 
-print("\n--- Generating Clean Dataset ---")
+print("\n--- 8. Generating Research Benchmark Dataset ---")
 dataset = req("/datasets", "POST", {
-    "name": "Automated Baseline Dataset",
+    "name": "Enterprise Mesh Resilience Benchmark v1.0",
     "version": "1.0",
-    "description": "Generated via python automation",
+    "description": "Benchmark telemetry dataset with automated traffic, chaos, and recovery traces",
     "filters": {}
 })
 if dataset:
-    print("Dataset successfully created:", dataset.get("metadata", {}).get("dataset_id"))
-print("Done!")
+    print("Dataset successfully generated:", dataset.get("metadata", {}).get("dataset_id"))
+
+print("\n=== Populated NetChaos with Dynamic Benchmark Telemetry! ===")
+

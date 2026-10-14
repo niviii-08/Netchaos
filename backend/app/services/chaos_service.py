@@ -13,6 +13,7 @@ from app.schemas.chaos import (
     ExperimentResponse, ExperimentSpec, HistoryItem, HistoryResponse, ResetResponse, RestoredTarget,
     RevertResponse,
 )
+from app.services.ids import max_suffix
 from app.services.topology_service import TopologyService
 
 _TITLES = {
@@ -65,9 +66,8 @@ class ChaosService:
         labels = self._labels(network_id)
         now = utc_now()
         
-        highest_exp = self.db.chaos_experiments.find_one({"network_id": network_id}, sort=[("id", -1)])
-        exp_seq = (int(highest_exp["id"].split("_")[1]) if len(highest_exp["id"].split("_")) > 1 and highest_exp["id"].split("_")[1].isdigit() else 0 if highest_exp and highest_exp["id"].startswith("chaos_") else 0) + 1
-        
+        exp_seq = max_suffix(self.db.chaos_experiments, {"network_id": network_id}, "chaos_") + 1
+
         experiment = {
             "id": f"chaos_{exp_seq:03d}",
             "network_id": network_id,
@@ -79,9 +79,8 @@ class ChaosService:
             "created_at": now
         }
         
-        highest_evt = self.db.chaos_events.find_one({"network_id": network_id}, sort=[("id", -1)])
-        evt_seq = (int(highest_evt["id"].split("_")[1]) if len(highest_evt["id"].split("_")) > 1 and highest_evt["id"].split("_")[1].isdigit() else 0 if highest_evt and highest_evt["id"].startswith("evt_") else 0)
-        
+        evt_seq = max_suffix(self.db.chaos_events, {"network_id": network_id}, "evt_")
+
         events_to_insert = []
         for event_spec in spec.events:
             evt_seq += 1

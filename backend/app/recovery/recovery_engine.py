@@ -6,6 +6,8 @@ with plain Python data structures and NetworkX graphs.
 """
 from __future__ import annotations
 
+import itertools
+
 import networkx as nx
 
 from app.schemas.recovery import RecoveryStrategy
@@ -90,20 +92,24 @@ class RecoveryEngine:
             return None
 
     def _highest_bandwidth(self, source: str, destination: str) -> RouteCandidate | None:
-        """Maximize bottleneck bandwidth — use negative bandwidth as weight."""
-        # We enumerate simple paths and pick best; for large graphs limit search
-        try:
-            all_paths = nx.all_simple_paths(self.G, source, destination, cutoff=20)
-            best: RouteCandidate | None = None
-            for path in all_paths:
-                c = self._make_candidate(path)
-                if best is None or c.bandwidth > best.bandwidth or (
-                    c.bandwidth == best.bandwidth and path < best.path  # lexicographic tie-break
-                ):
-                    best = c
-            return best
-        except (nx.NetworkXNoPath, nx.NodeNotFound):
+        """Maximize the bottleneck bandwidth (exact, polynomial time).
+
+        Try each distinct link bandwidth from highest to lowest: the first threshold at which source and
+        destination are still connected using only links at or above it is the best achievable bottleneck.
+        Among routes with that bottleneck the fewest-hop route is returned.
+        """
+        if source not in self.G or destination not in self.G:
             return None
+        for threshold in sorted({d.get("bandwidth", 0.0) for _, _, d in self.G.edges(data=True)}, reverse=True):
+            usable = nx.Graph()
+            usable.add_nodes_from(self.G.nodes)
+            usable.add_edges_from((u, v) for u, v, d in self.G.edges(data=True) if d.get("bandwidth", 0.0) >= threshold)
+            if nx.has_path(usable, source, destination):
+                return self._make_candidate(nx.shortest_path(usable, source, destination))
+        return None
+
+    #: Upper bound on candidate routes examined by the composite strategy (keeps meshes tractable).
+    MAX_COMPOSITE_CANDIDATES = 500
 
     def _composite(
         self,
@@ -113,22 +119,24 @@ class RecoveryEngine:
         hop_weight: float,
         bandwidth_weight: float,
     ) -> RouteCandidate | None:
-        """Custom composite cost: latency_weight*latency + hop_weight*hops - bandwidth_weight*bandwidth."""
-        try:
-            all_paths = nx.all_simple_paths(self.G, source, destination, cutoff=20)
-            best: RouteCandidate | None = None
-            best_cost = float("inf")
-            for path in all_paths:
-                c = self._make_candidate(path)
-                # Lower bandwidth = higher penalty
-                bw_penalty = (1.0 / max(c.bandwidth, 0.001)) * bandwidth_weight * 1000
-                cost = latency_weight * c.latency + hop_weight * c.hop_count + bw_penalty
-                if best is None or cost < best_cost or (cost == best_cost and path < best.path):
-                    best = c
-                    best_cost = cost
-            return best
-        except (nx.NetworkXNoPath, nx.NodeNotFound):
+        """Composite cost: latency_weight*latency + hop_weight*hops + a penalty for low bandwidth.
+
+        The cost is not a plain shortest-path weight, so candidates are the ``MAX_COMPOSITE_CANDIDATES``
+        lowest-latency simple routes (enumerated lazily); the cheapest of those under the composite
+        cost is returned. On very large meshes this is a documented approximation.
+        """
+        if source not in self.G or destination not in self.G or not nx.has_path(self.G, source, destination):
             return None
+        best: RouteCandidate | None = None
+        best_cost = float("inf")
+        paths = nx.shortest_simple_paths(self.G, source, destination, weight="latency")
+        for path in itertools.islice(paths, self.MAX_COMPOSITE_CANDIDATES):
+            c = self._make_candidate(path)
+            bw_penalty = (1.0 / max(c.bandwidth, 0.001)) * bandwidth_weight * 1000
+            cost = latency_weight * c.latency + hop_weight * c.hop_count + bw_penalty
+            if best is None or cost < best_cost or (cost == best_cost and path < best.path):
+                best, best_cost = c, cost
+        return best
 
     def _make_candidate(self, path: list[str]) -> RouteCandidate:
         latency = 0.0

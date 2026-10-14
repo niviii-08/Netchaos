@@ -26,6 +26,7 @@ def map_simulation(sim: dict) -> SimulationResponse:
         simulation_id=sim["id"], network_id=sim["network_id"], source=sim["source_node_id"],
         destination=sim["destination_node_id"], packet_count=sim["packet_count"], packet_size=sim["packet_size"],
         random_seed=sim["random_seed"], store_packets=sim["store_packets"], status=sim["status"],
+        phase=sim.get("phase"), recovery_id=sim.get("recovery_id"), experiment_id=sim.get("experiment_id"),
         failure_reason=sim.get("failure_reason"), route_available=sim.get("route_available"), route=sim.get("route"),
         delivered_packets=sim.get("delivered_packets"), dropped_packets=sim.get("dropped_packets"),
         packet_loss_percentage=sim.get("packet_loss_percentage"), path_latency_ms=sim.get("path_latency_ms"),

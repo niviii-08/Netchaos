@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 from pymongo.database import Database
 
 from app.database.database import get_mongo_db
+from app.errors import NotFoundError
 from app.schemas.failures import (
     NetworkBaselineResponse, FailureDetectionResponse, AffectedTrafficReport, ConnectivityCheckResponse
 )
@@ -29,7 +30,7 @@ def detect_failures(network_id: str, service: FailureDetectionService = Depends(
 def get_report(network_id: str, service: FailureDetectionService = Depends(get_service)):
     detection = service.get_report(network_id)
     if not detection:
-        return {"network_id": network_id, "overall_status": "healthy", "failures": [], "connected_components": 0, "failed_nodes": 0, "failed_links": 0, "degraded_links": 0, "unreachable_pairs": 0, "affected_simulations": 0, "id": "none", "baseline_id": "none"}
+        raise NotFoundError(f"No failure detection has been run for network '{network_id}'", "no_detection")
     return detection
 
 @router.get("/history", response_model=list[FailureDetectionResponse])

@@ -2,14 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Background, Controls, Handle, Position, ReactFlow } from "@xyflow/react";
 
 // One visual style per device type (see styles.css).
-const GLYPHS = { router: "⇄", host: "▣", server: "▤", client: "▭" };
+const GLYPHS = { router: "⇄", host: "▣", server: "▤", client: "▭", switch: "⇋", endpoint: "💻" };
 
 function DeviceNode({ data, selected }) {
   return (
     <div
       className={`device device-${data.type}${selected ? " is-selected" : ""}${data.onRoute ? " on-route" : ""}${data.failed ? " is-failed" : ""}`}
-      title={data.failed ? `${data.label} has FAILED` : undefined}
+      title={data.failed ? `${data.label} has FAILED` : `${data.label} (${data.type})`}
     >
+      <span className={`device-beacon ${data.failed ? 'failed' : data.onRoute ? 'route' : 'active'}`} />
       {data.failed && <span className="device-x" aria-label="failed">✕</span>}
       {/* Handles sit in the centre so links run centre-to-centre. */}
       <Handle type="target" position={Position.Top} className="handle" isConnectable={false} />
@@ -88,6 +89,18 @@ export default function TopologyCanvas({ topology, selection, onSelect, resetKey
         const classes = [
           onRoute && "on-route", failed && "link-failed", blocked && "link-blocked", degraded && "link-degraded",
         ].filter(Boolean);
+        
+        // Dynamic edge styling
+        const edgeStyle = onRoute 
+          ? { stroke: "#38bdf8", strokeWidth: 4, filter: "drop-shadow(0 0 6px rgba(56, 189, 248, 0.9))" }
+          : failed
+          ? { stroke: "#ef4444", strokeWidth: 3, strokeDasharray: "6 6" }
+          : blocked
+          ? { stroke: "#64748b", strokeWidth: 2, strokeDasharray: "4 4" }
+          : degraded
+          ? { stroke: "#f59e0b", strokeWidth: 3, strokeDasharray: "6 4" }
+          : { stroke: "rgba(255, 255, 255, 0.25)", strokeWidth: 2 };
+
         return {
           id: link.id,
           source: link.source,
@@ -95,6 +108,8 @@ export default function TopologyCanvas({ topology, selection, onSelect, resetKey
           type: "straight",
           label,
           className: classes.join(" "),
+          animated: Boolean(onRoute || degraded),
+          style: edgeStyle,
           zIndex: onRoute || failed || degraded ? 10 : 0,
           selected: selection?.kind === "link" && selection.id === link.id,
           interactionWidth: 24,

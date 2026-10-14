@@ -194,7 +194,10 @@ class TopologyService:
                 f"Network '{network_id}' already has nodes; templates can only be applied to an empty network",
                 "network_not_empty",
             )
-            
+
+        # Load the in-memory graph BEFORE any database write: after a restart it may not exist yet, and a
+        # failure after the inserts would leave the database and the graph out of step.
+        self._ensure_graph(network_id)
         node_specs, link_specs = build_template(template, count)
         
         nodes, links = [], []

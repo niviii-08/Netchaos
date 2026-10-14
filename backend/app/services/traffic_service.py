@@ -10,6 +10,7 @@ from app.enums import PacketStatus, SimulationStatus
 from app.errors import BadRequestError, ConflictError, NotFoundError
 from app.graph import GraphManager
 from app.schemas.traffic import SimulationCreate
+from app.services.ids import next_id
 from app.services.topology_service import TopologyService
 from app.simulation.traffic_simulator import RouteUnavailableError, SimulationOutcome, TrafficMetrics, TrafficSimulator
 
@@ -23,27 +24,29 @@ class TrafficService:
         self.db = db
         self.topology = TopologyService(db, graphs)
 
-    def create_simulation(self, network_id: str, data: SimulationCreate) -> dict:
+    def create_simulation(
+        self, network_id: str, data: SimulationCreate, *, phase: str | None = None, experiment_id: str | None = None,
+    ) -> dict:
+        """Create a pending simulation. ``phase``/``experiment_id`` tag it as part of an experiment lifecycle."""
         self.topology.get_network(network_id, lock=True)
         for role, node_id in (("Source", data.source), ("Destination", data.destination)):
             if not self.db.nodes.find_one({"id": node_id, "network_id": network_id}):
                 raise NotFoundError(f"{role} node '{node_id}' not found in network '{network_id}'", "node_not_found")
         if data.source == data.destination:
             raise BadRequestError("Source and destination must be different nodes", "same_source_destination")
-        
+
         limit = get_max_stored_packets()
         if data.store_packets and data.packet_count > limit:
             raise BadRequestError(f"store_packets is only allowed for simulations of up to {limit} packets", "invalid_store_packets")
 
-        highest = self.db.traffic_simulations.find_one({"network_id": network_id}, sort=[("id", -1)])
-        highest_id = 0
-        if highest and highest["id"].startswith("sim_"):
-            parts = highest["id"].split("_")
-            highest_id = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
-            
+        requested_route = None
+        if data.recovery_id:
+            requested_route = self._recovered_route(network_id, data)
+            phase = phase or "post_recovery"
+
         seed = data.random_seed if data.random_seed is not None else secrets.randbelow(2**32)
         sim = {
-            "id": f"sim_{highest_id + 1:03d}",
+            "id": next_id(self.db.traffic_simulations, {"network_id": network_id}, "sim_"),
             "network_id": network_id,
             "source_node_id": data.source,
             "destination_node_id": data.destination,
@@ -52,14 +55,35 @@ class TrafficService:
             "random_seed": seed,
             "store_packets": data.store_packets,
             "status": SimulationStatus.PENDING.value,
+            "phase": phase,
+            "recovery_id": data.recovery_id,
+            "experiment_id": experiment_id,
+            "requested_route": requested_route,
             "created_at": _now()
         }
-        
+
         try:
             self.db.traffic_simulations.insert_one(sim)
         except DuplicateKeyError:
             raise ConflictError("The change conflicts with existing data")
         return sim
+
+    def _recovered_route(self, network_id: str, data: SimulationCreate) -> list[str]:
+        """The route of a RECOVERED recovery event, checked against the requested source/destination."""
+        event = self.db.recovery_events.find_one({"id": data.recovery_id, "network_id": network_id})
+        if event is None:
+            raise NotFoundError(f"Recovery event '{data.recovery_id}' not found in network '{network_id}'", "recovery_not_found")
+        route = event.get("recovered_route")
+        if event.get("recovery_status") != "RECOVERED" or not route:
+            raise ConflictError(
+                f"Recovery event '{data.recovery_id}' did not produce a route (status {event.get('recovery_status')})",
+                "recovery_not_usable",
+            )
+        if route[0] != data.source or route[-1] != data.destination:
+            raise BadRequestError(
+                f"Recovered route runs {route[0]} -> {route[-1]}, not {data.source} -> {data.destination}", "route_mismatch",
+            )
+        return list(route)
 
     def list_simulations(self, network_id: str) -> list[dict]:
         self.topology.get_network(network_id)
@@ -94,7 +118,7 @@ class TrafficService:
             try:
                 outcome = simulator.simulate_traffic(
                     sim["source_node_id"], sim["destination_node_id"], sim["packet_count"], sim["packet_size"],
-                    sim["random_seed"], keep_packets=sim["store_packets"],
+                    sim["random_seed"], keep_packets=sim["store_packets"], route=sim.get("requested_route"),
                 )
             except RouteUnavailableError as exc:
                 self._save_failure(sim, str(exc), (time.perf_counter() - wall_start) * 1000)

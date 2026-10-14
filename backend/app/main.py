@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -12,14 +13,19 @@ from app.api.history import router as history_router
 from app.api.analytics import router as analytics_router
 from app.api.runner import router as runner_router
 from app.api.dataset import router as dataset_router
-from app.database.database import init_db
+from app.database.database import init_db, ping_db
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app.errors import register_exception_handlers
 
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    init_db()
+    try:
+        init_db()
+    except Exception:  # MongoDB not reachable yet: stay up, /health/ready reports 503 until it is
+        logging.getLogger(__name__).exception("Could not initialise MongoDB indexes at startup")
     yield
 
 
@@ -35,6 +41,13 @@ app = FastAPI(
     version="0.7.0",
 
     lifespan=lifespan,
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 register_exception_handlers(app)
 app.include_router(topology_router)
@@ -52,3 +65,14 @@ app.include_router(dataset_router)
 
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/health/ready", tags=["health"], summary="Readiness check (includes MongoDB)")
+def ready():
+    if ping_db():
+        try:
+            init_db()  # idempotent; covers a database that came up after the API did
+        except Exception:
+            logging.getLogger(__name__).exception("Index creation failed")
+        return {"status": "ok", "database": "up"}
+    return JSONResponse(status_code=503, content={"status": "unavailable", "database": "down"})

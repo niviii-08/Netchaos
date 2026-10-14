@@ -5,8 +5,10 @@ from pymongo import MongoClient
 import sys
 
 def main():
-    uri = "mongodb+srv://nevethaniivii_db_user:MrjW1rES4dd8ITHL@cluster0.wsxkegi.mongodb.net"
-    db_name = "netchaos"
+    uri = os.environ.get("MONGODB_URI")
+    if not uri:
+        sys.exit("Set MONGODB_URI in the environment first (never hardcode credentials).")
+    db_name = os.environ.get("MONGODB_DATABASE", "netchaos")
     
     # Get the directory where this script and json files are located
     seed_dir = os.path.dirname(os.path.abspath(__file__))

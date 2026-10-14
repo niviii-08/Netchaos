@@ -43,7 +43,7 @@ class RouteResilienceMetrics(BaseModel):
 class ExperimentAnalytics(BaseModel):
     experiment_id: str
     failure_type: str
-    impact_score: float
+    impact_score: Optional[float] = None  # None when baseline or chaos-phase data is missing
     connectivity: Optional[float] = None
     latency_degradation: Optional[float] = None
     packet_loss_degradation: Optional[float] = None
@@ -62,6 +62,11 @@ class ExperimentAnalytics(BaseModel):
     baseline_packet_loss: Optional[float] = None
     chaos_packet_loss: Optional[float] = None
     recovery_packet_loss: Optional[float] = None
+    # Lifecycle context
+    recovery_status: str = "unknown"  # recovered | not_required | unrecoverable | not_attempted | unknown
+    post_recovery_latency_degradation: Optional[float] = None
+    data_complete: bool = False
+    missing: List[str] = Field(default_factory=list)
 
 class CompareRequest(BaseModel):
     experiment_ids: List[str]
@@ -78,8 +83,11 @@ class ResearchReport(BaseModel):
     impact: Dict[str, Any]
     recovery: Dict[str, Any]
     performance: Dict[str, Any]
-    resilience_score: float
+    resilience_score: Optional[float] = None  # None when there is not enough data
     interpretation: str
+    disclaimer: str = ""
+    data_complete: bool = False
+    missing: List[str] = Field(default_factory=list)
     route_analysis: Optional[RouteResilienceMetrics] = None
     research_findings: List[str]
 

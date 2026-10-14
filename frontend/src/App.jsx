@@ -29,6 +29,7 @@ export default function App() {
   const [chaosActive, setChaosActive] = useState([]);
   const [chaosHistory, setChaosHistory] = useState([]);
   
+  const [loadingNetworks, setLoadingNetworks] = useState(true);
   const [activeTab, setActiveTab] = useState("Dashboard");
   const [networkStatus, setNetworkStatus] = useState("UNKNOWN");
 
@@ -47,17 +48,35 @@ export default function App() {
     }
   }, []);
 
-  useEffect(() => {
-    run(async () => {
-      const list = await api.listNetworks();
-      setNetworks(list);
-      if (list.length > 0) {
-        setNetworkId(list[list.length - 1].network_id);
-      } else {
-        setActiveTab("Topology"); // Force topology tab if empty to allow creation
+  const loadNetworks = useCallback(async (preferredId = null) => {
+    setLoadingNetworks(true);
+    return run(async () => {
+      try {
+        const list = await api.listNetworks();
+        setNetworks(list || []);
+        if (list && list.length > 0) {
+          const saved = preferredId || localStorage.getItem("netchaos_active_network");
+          const found = list.find(n => n.network_id === saved);
+          setNetworkId(found ? found.network_id : list[0].network_id);
+        } else {
+          setNetworkId(null);
+          setActiveTab("Topology");
+        }
+      } finally {
+        setLoadingNetworks(false);
       }
     });
   }, [run]);
+
+  useEffect(() => {
+    loadNetworks();
+  }, [loadNetworks]);
+
+  useEffect(() => {
+    if (networkId) {
+      localStorage.setItem("netchaos_active_network", networkId);
+    }
+  }, [networkId]);
 
   useEffect(() => {
     setSelection(null);
@@ -164,16 +183,33 @@ export default function App() {
     <div className="app-layout">
       {/* GLOBAL HEADER */}
       <header className="app-header">
-        <div>
-          <b style={{marginRight: '20px', fontSize: '1.2rem'}}>NetChaos</b>
-          <label>Network:
+        <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
+          <b style={{fontSize: '1.25rem', letterSpacing: '-0.02em'}}>NetChaos</b>
+          <label style={{display: 'inline-flex', flexDirection: 'row', alignItems: 'center', gap: '8px', margin: 0, flex: 'none'}}>
+            <span style={{color: 'var(--muted)', fontSize: '0.9rem'}}>Network:</span>
             <select 
               value={networkId || ""} 
               onChange={e => setNetworkId(e.target.value)}
-              style={{marginRight: '10px'}}
+              disabled={loadingNetworks}
+              style={{marginRight: '6px'}}
             >
-              {networks.map(n => <option key={n.network_id} value={n.network_id}>{n.name}</option>)}
+              {loadingNetworks ? (
+                <option value="">Loading networks…</option>
+              ) : networks.length === 0 ? (
+                <option value="">No networks available</option>
+              ) : (
+                networks.map(n => <option key={n.network_id} value={n.network_id}>{n.name} ({n.network_id})</option>)
+              )}
             </select>
+            <button 
+              type="button" 
+              className="secondary" 
+              onClick={() => loadNetworks(networkId)} 
+              title="Refresh network list"
+              style={{padding: '4px 8px', fontSize: '13px', minHeight: 'unset'}}
+            >
+              ↻
+            </button>
           </label>
         </div>
         <div style={{display:'flex', gap: '20px', alignItems: 'center'}}>
@@ -181,7 +217,10 @@ export default function App() {
              <>
                <span>Nodes: {summary.nodes}</span>
                <span>Links: {summary.links}</span>
-               <span className={`status-${networkStatus.toLowerCase()}`}>Status: {networkStatus}</span>
+               <span className={`status-${networkStatus.toLowerCase()}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                 <span className={`device-beacon ${networkStatus === 'HEALTHY' ? 'active' : networkStatus === 'CRITICAL' ? 'failed' : 'route'}`} style={{ position: 'static' }} />
+                 Status: {networkStatus}
+               </span>
              </>
            )}
         </div>
@@ -213,7 +252,13 @@ export default function App() {
           )}
           
           {activeTab === "Dashboard" && hasNetwork && (
-             <DashboardOverview networkId={networkId} topology={topology} chaosActive={chaosActive} simulations={simulations} />
+             <DashboardOverview 
+               networkId={networkId} 
+               topology={topology} 
+               chaosActive={chaosActive} 
+               simulations={simulations} 
+               onRefresh={() => refreshTopology(networkId)}
+             />
           )}
           
           {activeTab === "Monitoring" && hasNetwork && (

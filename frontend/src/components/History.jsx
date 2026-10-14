@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 
+const fmt = (v, unit = "") => (v == null ? "N/A (undefined)" : `${+Number(v).toFixed(2)}${unit}`);
+
 export function HistoryDashboard({ networkId, onClose, inline = false }) {
   const [experiments, setExperiments] = useState([]);
 
@@ -81,20 +83,31 @@ export function HistoryDashboard({ networkId, onClose, inline = false }) {
                   {detail.performance_analysis ? (
                     <table className="details-table">
                       <tbody>
-                        <tr><td>Latency Degradation:</td><td>{detail.performance_analysis.latency.degradation_absolute.toFixed(2)} ms</td></tr>
-                        <tr><td>Packet Loss:</td><td>{detail.performance_analysis.packet_loss.worst}%</td></tr>
-                        <tr><td>Throughput:</td><td>{detail.performance_analysis.throughput.worst} Mbps</td></tr>
-                        <tr><td>Availability:</td><td>{detail.performance_analysis.availability.worst}%</td></tr>
+                        <tr><td>Latency Degradation:</td><td>{fmt(detail.performance_analysis.latency.degradation_absolute, " ms")}</td></tr>
+                        <tr><td>Packet Loss:</td><td>{fmt(detail.performance_analysis.packet_loss.worst, "%")}</td></tr>
+                        <tr><td>Throughput:</td><td>{fmt(detail.performance_analysis.throughput.worst, " Mbps")}</td></tr>
+                        <tr><td>Availability:</td><td>{fmt(detail.performance_analysis.availability.worst, "%")}</td></tr>
                       </tbody>
                     </table>
                   ) : <p>No performance data.</p>}
+                  {detail.metrics && (
+                    <table className="details-table" style={{marginTop: 12}}>
+                      <tbody>
+                        <tr><td>Recovery status:</td><td>{detail.metrics.recovery_status}</td></tr>
+                        <tr><td>Connectivity kept:</td><td>{fmt(detail.metrics.connectivity_preservation, "%")}</td></tr>
+                        <tr><td>Recovery time (simulated):</td><td>{fmt(detail.metrics.recovery_time_seconds, " s")}</td></tr>
+                        <tr><td>Impact score:</td><td>{fmt(detail.metrics.impact_score)}</td></tr>
+                        {detail.metrics.missing?.length > 0 && <tr><td>Missing data:</td><td>{detail.metrics.missing.join("; ")}</td></tr>}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
                 
                 <div className="monitoring-card">
                   <h4>Failure Impact Assessment</h4>
                   {detail.failure_impacts && detail.failure_impacts.length > 0 ? detail.failure_impacts.map((f, i) => (
                     <div key={i} style={{marginBottom:'10px'}}>
-                      <div><b>{f.failure_type}</b> (Score: {f.impact_score})</div>
+                      <div><b>{f.failure_type}</b> (Impact: {f.impact_score == null ? "N/A" : f.impact_score})</div>
                       <div>Traffic affected: {f.affected_traffic} flow(s)</div>
                       <div>Partitions: {f.partitions_created}</div>
                     </div>

@@ -84,7 +84,7 @@ export default function Failures({ networkId }) {
         <button onClick={handleCreateBaseline} disabled={loading} className="danger">
           CREATE BASELINE
         </button>
-        <button onClick={handleDetectFailures} disabled={loading || !baseline} className="danger">
+        <button onClick={handleDetectFailures} disabled={loading} className="danger">
           DETECT FAILURES
         </button>
         <button onClick={fetchState} disabled={loading}>
@@ -92,7 +92,7 @@ export default function Failures({ networkId }) {
         </button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
         <Panel>
           <Title>NETWORK STATUS</Title>
           {report ? (

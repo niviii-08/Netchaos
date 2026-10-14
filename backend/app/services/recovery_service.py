@@ -11,10 +11,11 @@ from app.enums import ElementStatus
 from app.errors import BadRequestError, NotFoundError
 from app.recovery.recovery_engine import RecoveryEngine
 from app.schemas.recovery import RecoveryRequest, RecoveryResponse, RecoveryStatus, RecoveryStrategy
+from app.services.ids import next_id
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc).replace(microsecond=0, tzinfo=None)
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class RecoveryService:
@@ -27,8 +28,16 @@ class RecoveryService:
     # Public API methods
     # -------------------------------------------------------------------------
 
-    def recover_simulation(self, network_id: str, req: RecoveryRequest) -> RecoveryResponse:
-        """Attempt to recover one simulation whose route has been disrupted by a failure."""
+    def recover_simulation(
+        self, network_id: str, req: RecoveryRequest, *,
+        experiment_id: str | None = None, detection_id: str | None = None,
+    ) -> RecoveryResponse:
+        """Attempt to recover one simulation whose route has been disrupted by a failure.
+
+        The simulation record itself is never modified: it keeps the measurements of the run that
+        happened. The recovered route is stored in a recovery event; traffic over it is a *new*
+        post-recovery simulation (``SimulationCreate.recovery_id``).
+        """
         self._verify_network(network_id)
         sim = self._get_sim(network_id, req.simulation_id)
 
@@ -44,7 +53,7 @@ class RecoveryService:
 
         if sim.get("status") != "completed" or not original_route:
             result = self._not_required(network_id, sim, start_ts, perf_start)
-            self._persist(result)
+            self._persist(result, start_ts=start_ts, experiment_id=experiment_id, detection_id=detection_id)
             return result
 
         orig_latency, orig_hops, orig_bw = engine.compute_route_metrics(original_route)
@@ -61,7 +70,7 @@ class RecoveryService:
                                         orig_latency=orig_latency,
                                         orig_hops=orig_hops,
                                         orig_bw=orig_bw)
-            self._persist(result)
+            self._persist(result, start_ts=start_ts, experiment_id=experiment_id, detection_id=detection_id)
             return result
 
         source = sim["source_node_id"]
@@ -118,19 +127,8 @@ class RecoveryService:
                     f"{' -> '.join(candidate.path)}"
                 ),
             )
-            if connectivity_restored and result.route_changed:
-                self.db.traffic_simulations.update_one(
-                    {"id": sim["id"], "network_id": network_id},
-                    {"$set": {
-                        "route": candidate.path,
-                        "path_latency_ms": candidate.latency,
-                        "hop_count": candidate.hop_count,
-                        "path_bandwidth_mbps": candidate.bandwidth,
-                        "route_available": True
-                    }}
-                )
-                
-        self._persist(result)
+
+        self._persist(result, start_ts=start_ts, experiment_id=experiment_id, detection_id=detection_id)
         return result
 
     def recover_all(self, network_id: str, strategy: RecoveryStrategy) -> list[RecoveryResponse]:
@@ -309,17 +307,28 @@ class RecoveryService:
         )
 
     def _next_recovery_id(self, network_id: str) -> str:
-        suffix = network_id[-3:]
-        count = self.db.recovery_events.count_documents({"network_id": network_id})
-        return f"rec_{suffix}_{count + 1:03d}"
+        return next_id(self.db.recovery_events, {"network_id": network_id}, f"rec_{network_id[-3:]}_")
 
-    def _persist(self, result: RecoveryResponse) -> None:
+    def _persist(
+        self, result: RecoveryResponse, *, start_ts: datetime | None = None,
+        experiment_id: str | None = None, detection_id: str | None = None,
+    ) -> None:
         rec_id = self._next_recovery_id(result.network_id)
-        now = _utcnow()
+        end_ts = _utcnow()
+        detection = self._find_detection(result.network_id, detection_id)
+        recovered = result.status == RecoveryStatus.RECOVERED
+        # Documented recovery time: from the detection of the failure until an alternative route was
+        # provisioned (simulator wall-clock, seconds). Only defined when a detection exists and recovery succeeded.
+        recovery_time = None
+        if recovered and detection and detection.get("detected_at"):
+            detected_at = detection["detected_at"].replace(tzinfo=None)
+            recovery_time = round(max((end_ts - detected_at).total_seconds(), 0.0), 6)
         event = {
             "id": rec_id,
             "network_id": result.network_id,
             "simulation_id": result.simulation_id,
+            "experiment_id": experiment_id,
+            "failure_detection_id": detection["id"] if detection else None,
             "original_route": result.original_route,
             "recovered_route": result.recovered_route,
             "original_latency": result.original_latency,
@@ -330,12 +339,19 @@ class RecoveryService:
             "recovered_bandwidth": result.recovered_bandwidth,
             "route_changed": result.route_changed,
             "recovery_status": result.status.value,
-            "recovery_start_time": now,
-            "recovery_end_time": now,
+            "recovery_start_time": start_ts or end_ts,
+            "recovery_end_time": end_ts,
             "recovery_duration": result.recovery_duration,
+            "recovery_time_seconds": recovery_time,
             "failure_type": result.failure_type,
             "failure_description": result.failure_description,
-            "created_at": now,
+            "created_at": end_ts,
         }
         self.db.recovery_events.insert_one(event)
         result.recovery_id = rec_id
+
+    def _find_detection(self, network_id: str, detection_id: str | None) -> dict | None:
+        """The detection that observed the failure: the given one, else the network's latest sweep."""
+        if detection_id:
+            return self.db.failure_detections.find_one({"id": detection_id, "network_id": network_id})
+        return self.db.failure_detections.find_one({"network_id": network_id}, sort=[("detected_at", -1)])

@@ -7,6 +7,8 @@ class NodeType(str, Enum):
     HOST = "host"
     SERVER = "server"
     CLIENT = "client"
+    SWITCH = "switch"
+    ENDPOINT = "endpoint"
 
 
 class ElementStatus(str, Enum):

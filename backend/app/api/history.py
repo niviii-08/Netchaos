@@ -4,7 +4,7 @@ from pymongo.database import Database
 
 from app.database.database import get_mongo_db
 from app.services.history_service import HistoryService
-from app.schemas.history import ExperimentCreate, ExperimentResponse, ExperimentDetailResponse
+from app.schemas.history import ExperimentCreate, ExperimentResponse, ExperimentDetailResponse, PhaseLinks
 
 router = APIRouter(tags=["history"])
 
@@ -30,3 +30,9 @@ def get_experiment_detail(experiment_id: str, svc: HistoryService = Depends(get_
 @router.post("/api/experiments/compare", response_model=List[dict])
 def compare_experiments(experiment_ids: List[str], svc: HistoryService = Depends(get_service)):
     return svc.compare(experiment_ids)
+
+
+@router.post("/api/experiments/{experiment_id}/phases", response_model=ExperimentResponse)
+def link_phases(experiment_id: str, links: PhaseLinks, svc: HistoryService = Depends(get_service)):
+    """Attach baseline / chaos / recovery / post-recovery records to an experiment so analytics can use them."""
+    return svc.link_phases(experiment_id, links.model_dump(exclude_none=True))

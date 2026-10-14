@@ -10,6 +10,7 @@ from app.errors import NotFoundError, BadRequestError
 from app.services.resilience_analytics_service import ResilienceAnalyticsService
 from app.services.history_service import HistoryService
 from app.services.runner_service import RunnerService
+from app.analysis.phase_metrics import resilience_score
 
 class DatasetService:
     def __init__(self, db: Database, graph_manager=None):
@@ -60,7 +61,7 @@ class DatasetService:
             for run in plan.get("runs", []):
                 if run.get("experiment_id"):
                     exp_to_plan_run[run["experiment_id"]] = {
-                        "plan_id": plan["plan_id"],
+                        "plan_id": plan["id"],
                         "run_id": run.get("run_id")
                     }
                     
@@ -72,10 +73,10 @@ class DatasetService:
             nid = exp["network_id"]
             
             # Extract Analytics if available
-            try:
-                analytics = self.analytics.analyze_experiment(exp_id)
-            except Exception: # In case there's missing data for analytics
-                analytics = None
+            analytics = None
+            linked = bool(exp.get("phases"))
+            if linked:
+                analytics = self.analytics.get_experiment_analytics(exp_id)
                 
             # Network stats
             net = self.db.networks.find_one({"id": nid})
@@ -230,19 +231,61 @@ class DatasetService:
                     pl_loss_pct = (dropped / tot) * 100
             rec_dict["packet_loss_percentage"] = pl_loss_pct
             
-            if analytics:
-                rec_dict["latency_degradation_percentage"] = analytics.latency_degradation
-                rec_dict["packet_loss_degradation_percentage"] = analytics.packet_loss_degradation
-                rec_dict["throughput_degradation_percentage"] = analytics.throughput_degradation
-                
-                if analytics.resilience:
-                    rm = analytics.resilience
-                    rec_dict["connectivity_preservation"] = rm.connectivity_preservation
-                    rec_dict["performance_preservation"] = rm.performance_preservation
-                    rec_dict["recovery_effectiveness"] = rm.recovery_effectiveness
-                    rec_dict["resilience_score"] = rm.resilience_score
-                    rec_dict["impact_score"] = rm.impact_score
-                    
+            if linked:
+                # Real lifecycle data: every feature comes from the experiment's linked records.
+                m, recs = self.history.phase_metrics(exp)
+                bsim, csim, psim = recs["baseline"], recs["chaos_sim"], recs["post"]
+                recovery, detection = recs["recovery"] or {}, recs["detection"] or {}
+                chaos_doc = recs["chaos"][0] if recs["chaos"] else {}
+                events = list(self.db.chaos_events.find(
+                    {"network_id": nid, "experiment_id": chaos_doc.get("id")})) if chaos_doc else []
+                params = events[0].get("parameters", {}) if events else {}
+                ctype = chaos_doc.get("scenario_type")
+                delivered = bsim.get("delivered_packets") if bsim else None
+                dropped = bsim.get("dropped_packets") if bsim else None
+                rec_dict.update({
+                    "source_node": bsim.get("source_node_id") if bsim else None,
+                    "destination_node": bsim.get("destination_node_id") if bsim else None,
+                    "packet_count": bsim.get("packet_count") if bsim else None,
+                    "packet_size": bsim.get("packet_size") if bsim else None,
+                    "delivered_packets": delivered, "dropped_packets": dropped,
+                    "packet_loss_percentage": bsim.get("packet_loss_percentage") if bsim else None,
+                    "baseline_latency": analytics.baseline_latency, "chaos_latency": analytics.chaos_latency,
+                    "recovered_latency": analytics.recovery_latency,
+                    "baseline_throughput": analytics.baseline_throughput,
+                    "chaos_throughput": analytics.chaos_throughput,
+                    "recovered_throughput": analytics.recovery_throughput,
+                    "chaos_type": ctype,
+                    "chaos_target": events[0]["target_id"] if events else None,
+                    "packet_loss_injected": params.get("packet_loss"),
+                    "latency_injected": params.get("latency"),
+                    "bandwidth_reduction": params.get("bandwidth"),
+                    "multiple_failure_count": len(events),
+                    "failure_detected": bool(detection),
+                    "failed_node_count": detection.get("failed_nodes", 0),
+                    "failed_link_count": detection.get("failed_links", 0),
+                    "recovery_attempted": bool(recovery),
+                    "recovery_outcome": {"recovered": "RECOVERED", "unrecoverable": "UNRECOVERABLE",
+                                         "not_required": "NOT_REQUIRED"}.get(m["recovery_status"], "NOT_ATTEMPTED"),
+                    "original_route_length": len(recovery["original_route"]) if recovery.get("original_route") else None,
+                    "recovered_route_length": len(recovery["recovered_route"]) if recovery.get("recovered_route") else None,
+                    "route_changed": recovery.get("route_changed"),
+                    "recovery_time": m["recovery_time_seconds"],
+                    "latency_degradation_percentage": analytics.latency_degradation,
+                    "packet_loss_degradation_percentage": analytics.packet_loss_degradation,
+                    "throughput_degradation_percentage": analytics.throughput_degradation,
+                    "connectivity_preservation": analytics.connectivity,
+                    "recovery_effectiveness": analytics.recovery_effectiveness,
+                    "impact_score": analytics.impact_score,
+                })
+                if analytics.impact_score is not None:
+                    rec_dict["resilience_score"] = resilience_score(
+                        analytics.connectivity or 0.0, 100.0 if analytics.recoverable else 0.0)
+                    rec_dict["performance_preservation"] = round(100.0 - 100.0 * analytics.impact_score, 2)
+                rec_dict["validation_warnings"] = list(analytics.missing)
+                if analytics.missing:
+                    rec_dict["data_quality"] = "PARTIAL"
+
             if exp_id in exp_to_plan_run:
                 rec_dict["plan_id"] = exp_to_plan_run[exp_id]["plan_id"]
                 rec_dict["run_id"] = exp_to_plan_run[exp_id]["run_id"]
@@ -267,7 +310,9 @@ class DatasetService:
                     warnings.append("Missing critical features (source or chaos type)")
                     data_quality = "PARTIAL" if data_quality == "VALID" else data_quality
                     
-                rec_dict["validation_warnings"] = warnings
+                rec_dict["validation_warnings"] = list(rec_dict.get("validation_warnings") or []) + warnings
+                if rec_dict.get("data_quality") == "PARTIAL" and data_quality == "VALID":
+                    data_quality = "PARTIAL"
                 rec_dict["data_quality"] = data_quality
                 
                 rec_obj = DatasetRecord(**rec_dict)

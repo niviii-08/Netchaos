@@ -65,6 +65,25 @@ export function TrafficPanel({ nodes, disabled, selectedSim, onCreate, onRun }) 
         <button type="button" className="secondary" disabled={!canRun} onClick={onRun}>
           Run Simulation{selectedSim ? ` (${selectedSim.simulation_id})` : ""}
         </button>
+        {nodes.length >= 2 && (
+          <button 
+            type="button" 
+            className="secondary" 
+            disabled={disabled}
+            style={{ marginTop: '4px', borderColor: 'var(--accent)', color: '#c4b5fd' }}
+            onClick={() => {
+              onCreate({
+                source: nodes[0].id,
+                destination: nodes[nodes.length - 1].id,
+                packet_count: 500,
+                packet_size: 1500,
+                random_seed: 42
+              });
+            }}
+          >
+            ⚡ Quick Simulation ({nodes[0].name} ➔ {nodes[nodes.length - 1].name})
+          </button>
+        )}
       </form>
       <p className="hint">
         {sameNode
@@ -90,10 +109,23 @@ export function TrafficResults({ simulations, selectedId, metrics, nameOf, onSel
         {sim && (
           <>
             {sim.route && (
-              <p className="route-line">
-                <span className="swatch" />
-                {sim.route.map(nameOf).join(" → ")}
-              </p>
+              <div style={{ marginBottom: "12px" }}>
+                <div className="route-line" style={{ fontWeight: 600 }}>
+                  <span className="swatch" />
+                  Route: {sim.route.map(nameOf).join(" → ")}
+                </div>
+                <div className="hop-flow">
+                  {sim.route.map((nodeId, idx) => (
+                    <span key={nodeId} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <span className="hop-node">
+                        <span style={{ color: '#38bdf8' }}>●</span>
+                        {nameOf(nodeId)}
+                      </span>
+                      {idx < sim.route.length - 1 && <span className="hop-arrow">➔</span>}
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
             <dl className="compact">
               <dt>Simulation</dt><dd>{sim.simulation_id} <span className={`badge ${sim.status}`}>{sim.status}</span></dd>

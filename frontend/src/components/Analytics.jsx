@@ -40,7 +40,7 @@ export function AnalyticsDashboard({ networkId }) {
         <h2>Advanced Resilience Analytics</h2>
         <div className="resilience-score-box">
           <span className="score-label">NetChaos Resilience Score</span>
-          <span className="score-value">{summary.resilience_score?.toFixed(1) || "0.0"}</span>
+          <span className="score-value">{summary.resilience_score != null ? summary.resilience_score.toFixed(1) : "N/A"}</span>
         </div>
       </div>
 
@@ -56,19 +56,19 @@ export function AnalyticsDashboard({ networkId }) {
         <div className="metric-card">
           <h4>Average Impact Score</h4>
           <span className="metric-value">
-            {summary.average_impact_score !== null ? summary.average_impact_score.toFixed(3) : "N/A"}
+            {summary.average_impact_score != null ? summary.average_impact_score.toFixed(3) : "N/A"}
           </span>
         </div>
         <div className="metric-card">
           <h4>Avg Recovery Time</h4>
           <span className="metric-value">
-            {summary.average_recovery_time !== null ? `${summary.average_recovery_time.toFixed(2)}s` : "N/A"}
+            {summary.average_recovery_time != null ? `${summary.average_recovery_time.toFixed(2)}s` : "N/A"}
           </span>
         </div>
         <div className="metric-card">
           <h4>Avg Connectivity Preserved</h4>
           <span className="metric-value">
-            {summary.average_connectivity_preservation !== null 
+            {summary.average_connectivity_preservation != null 
               ? `${summary.average_connectivity_preservation.toFixed(1)}%` 
               : "N/A"}
           </span>
@@ -105,7 +105,7 @@ export function AnalyticsDashboard({ networkId }) {
                     </span>
                   </td>
                   <td>{f.recoverable ? "Yes" : "No"}</td>
-                  <td>{f.connectivity_preservation !== null ? `${f.connectivity_preservation.toFixed(1)}%` : "N/A"}</td>
+                  <td>{f.connectivity_preservation != null ? `${f.connectivity_preservation.toFixed(1)}%` : "N/A"}</td>
                 </tr>
               ))}
             </tbody>
@@ -120,7 +120,7 @@ export function AnalyticsDashboard({ networkId }) {
             <>
               <li>{summary.experiments_analyzed} experiments have been fully analyzed across the network.</li>
               <li>{summary.failed_recoveries} out of {summary.experiments_analyzed} experiments were unable to recover connectivity completely.</li>
-              {summary.average_recovery_time !== null && (
+              {summary.average_recovery_time != null && (
                 <li>When recovery was possible, it took an average of {summary.average_recovery_time.toFixed(2)}s to restore routing.</li>
               )}
               {summary.resilience_score > 80 ? (

@@ -121,15 +121,18 @@ class TrafficSimulator:
         graph: nx.Graph,
         processing_overhead_ms: float = DEFAULT_PROCESSING_OVERHEAD_MS,
         route_weight: str | None = None,
+        max_queue_bytes: int | None = None,
     ) -> None:
         """
         ``route_weight=None`` finds the route with the fewest hops (plain ``shortest_path``);
         ``"latency"`` would minimise total latency instead.
+        ``max_queue_bytes`` introduces tail-drop congestion control if set.
         """
         if processing_overhead_ms < 0:
             raise ValueError("processing_overhead_ms must be >= 0")
         self.processing_overhead_ms = processing_overhead_ms
         self.route_weight = route_weight
+        self.max_queue_bytes = max_queue_bytes
         self._graph = self._ordered_copy(graph)
 
     # --- topology snapshot ---------------------------------------------------
@@ -222,6 +225,41 @@ class TrafficSimulator:
             bandwidth_mbps=min(l.bandwidth_mbps for l in links),
         )
 
+    def analyze_explicit_route(self, source: str, destination: str, route: Sequence[str]) -> RouteInfo:
+        """Validate a caller-supplied route (e.g. one chosen by the recovery engine) and describe it.
+
+        The route is used exactly as given or rejected: it must start at ``source``, end at ``destination``,
+        follow existing links, and cross no failed node or link. Nothing is ever re-routed here, so a
+        failed element can never be used even if a caller passes in a stale route.
+        """
+        route = list(route)
+
+        def unavailable(reason: str, **extra) -> RouteInfo:
+            return RouteInfo(source, destination, False, [], [], 0, 0.0, 0.0, reason, **extra)
+
+        if len(route) < 2 or route[0] != source or route[-1] != destination:
+            return unavailable("Supplied route does not connect source to destination")
+        for node in route:
+            if node not in self._graph:
+                return unavailable(f"Node '{node}' on the supplied route is not in the topology")
+        if len(set(route)) != len(route):
+            return unavailable("Supplied route visits a node more than once")
+        for u, v in zip(route, route[1:]):
+            if not self._graph.has_edge(u, v):
+                return unavailable(f"No link between '{u}' and '{v}' on the supplied route")
+        failed_nodes, failed_links = self._failed_nodes(route), self._failed_links(route)
+        if failed_nodes or failed_links:
+            return unavailable(
+                NODE_FAILED_REASON if failed_nodes else LINK_FAILED_REASON,
+                blocked_route=route, failed_nodes=failed_nodes, failed_links=failed_links,
+            )
+        links = self.route_links(route)
+        return RouteInfo(
+            source=source, destination=destination, available=True, route=route, links=links,
+            hop_count=len(links), latency_ms=round(sum(l.latency_ms for l in links), 6),
+            bandwidth_mbps=min(l.bandwidth_mbps for l in links),
+        )
+
     # --- packets ---------------------------------------------------------------
     @staticmethod
     def transmission_time_ms(packet_size: int, bandwidth_mbps: float) -> float:
@@ -235,6 +273,7 @@ class TrafficSimulator:
         tx_times_ms: Sequence[float],
         rng: random.Random,
         link_free_at: list[float],
+        packet_size: int,
     ) -> PacketResult:
         """Send one packet along ``links``. ``link_free_at`` (one entry per link) is updated in place.
 
@@ -244,6 +283,17 @@ class TrafficSimulator:
         ready = 0.0  # packets are all waiting at the source at t = 0
         for i, link in enumerate(links):
             start = max(ready, link_free_at[i])
+            
+            # Queue management / Tail-Drop Congestion Control
+            if self.max_queue_bytes is not None:
+                queue_wait = start - ready
+                if queue_wait > 0:
+                    # Calculate bytes currently in the queue for this link based on wait time and bandwidth
+                    queue_bytes = (queue_wait * link.bandwidth_mbps * 1000.0) / 8.0
+                    # Plus the packet itself
+                    if queue_bytes + packet_size > self.max_queue_bytes:
+                        return PacketResult(sequence_number, PacketStatus.DROPPED, ready, link.link_id)
+
             link_free_at[i] = start + tx_times_ms[i]
             if rng.random() * 100.0 < link.packet_loss_percent:
                 return PacketResult(sequence_number, PacketStatus.DROPPED, link_free_at[i], link.link_id)
@@ -258,15 +308,25 @@ class TrafficSimulator:
         packet_size: int,
         random_seed: int,
         keep_packets: bool = False,
+        route: Sequence[str] | None = None,
     ) -> SimulationOutcome:
         """Send ``packet_count`` packets of ``packet_size`` bytes from source to destination.
 
-        Raises RouteUnavailableError if no route exists. No dynamic rerouting: if the route
-        cannot be used, the simulation simply fails.
+        By default the route is the current shortest route (``analyze_route``). If ``route`` is given
+        (post-recovery traffic) exactly that route is used after validation (``analyze_explicit_route``).
+        Raises RouteUnavailableError if the route cannot be used. The simulator itself never reroutes.
         """
+        # Dynamic OSPF/BGP Convergence Blackout
+        convergence_blackout_ms = 0.0
+        if route is not None:
+            # Add 50ms of convergence delay per hop when using a recovered route
+            convergence_blackout_ms = (len(route) - 1) * 50.0
         if packet_count <= 0 or packet_size <= 0:
             raise ValueError("packet_count and packet_size must be > 0")
-        info = self.analyze_route(source, destination)
+        info = (
+            self.analyze_explicit_route(source, destination, route) if route is not None
+            else self.analyze_route(source, destination)
+        )
         if not info.available:
             raise RouteUnavailableError(info.reason or NO_ROUTE_REASON)
 
@@ -279,13 +339,23 @@ class TrafficSimulator:
         last_event_ms = 0.0
         kept: list[PacketResult] | None = [] if keep_packets else None
         for sequence in range(1, packet_count + 1):
-            result = self.simulate_packet(sequence, links, tx_times, rng, link_free_at)
+            result = self.simulate_packet(sequence, links, tx_times, rng, link_free_at, packet_size)
+            
+            # Packets arriving before routing tables converge are dropped!
+            if result.completed_at_ms < convergence_blackout_ms and result.status == PacketStatus.DELIVERED:
+                result.status = PacketStatus.DROPPED
+                result.dropped_at_link_id = "convergence_blackout"
+
             if result.status is PacketStatus.DELIVERED:
                 delivered += 1
             if result.completed_at_ms > last_event_ms:
                 last_event_ms = result.completed_at_ms
             if kept is not None:
                 kept.append(result)
+
+        # Force simulated duration to at least the blackout time so throughput calculations are accurate
+        if last_event_ms < convergence_blackout_ms:
+            last_event_ms = convergence_blackout_ms
 
         return SimulationOutcome(
             route_info=info, packet_count=packet_count, packet_size=packet_size, random_seed=random_seed,
